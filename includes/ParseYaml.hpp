@@ -13,28 +13,30 @@
 #ifndef PARSE_YAML_HPP
 # define PARSE_YAML_HPP
 
+#include <fstream>
 #include <map>
 #include <string>
 
 
 typedef std::map<std::string, std::string>		StrStr;
-typedef std::map<std::string, infoProcess>		mStrStr;
+typedef std::map<std::string, StrStr>			mStrStr;
 
 class ParseYaml
 {
-	int						_index;
+	mStrStr					_tmp;
 	std::string				_fileName;
+	std::ofstream   		_logFile;
 
 	ParseYaml();
 	ParseYaml(ParseYaml const &);
 	ParseYaml const &		operator=(ParseYaml const &);
 public:
-	ParseYaml(std::string const &fileName);
+	ParseYaml(int ac, char **);
 	~ParseYaml();
 
-	std::string				getLogFile(void);
-	infoProcess				getAllProcess(void);
-	infoProcess				getProcess(std::string const &name);
+	std::ofstream			getLogFile(void);
+	mStrStr					getAllProcess(void) const;
+	StrStr					getProcess(std::string const &name) const;
 
 	void					reloadFile(void);
 };

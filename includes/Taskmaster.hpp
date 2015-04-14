@@ -13,8 +13,11 @@
 #ifndef TASKMASTER_HPP
 # define TASKMASTER_HPP
 
+#include <sstream>
+#include <fstream>
 #include <unistd.h>
 #include <map>
+#include <list>
 #include <string>
 #include "ParseYaml.hpp"
 #include "Process.hpp"
@@ -26,33 +29,36 @@
 #define	RELOAD 		"reload"
 #define	EXIT 		"exit"
 
+typedef				std::map< std::string, Process *> PList;
+
 class Taskmaster
 {
 public:
 	typedef				void (Taskmaster::*Cmd)(std::string const &cmd);
-	typedef				std::list<std::string, Process> PList
 
 private:
 	ParseYaml					_parse;
 
 	std::map<std::string, Cmd>	_cmds;
-	ProcessList					_process;
+	PList						_process;
 
 	// feature
-	std::string					_logFile;
-	std::ifstream				_file;
+	std::ofstream   			_logFile;
 
-	void						start(std::string const &cmd);
-	void						restart(std::string const &cmd);
-	void						stop(std::string const &cmd);
-	void						status(std::string const &cmd);
-	void						reload(std::string const &cmd);
-	void						exit(std::string const &cmd);
+	void						_autoStart(std::string const &processName = "");
+	void						_deleteProcess(std::string const &name = "");
+	void						_createProcess(std::string const &name, StrStr const &infoNewProcess);
+
+	void						_start(std::string const &processName = "");
+	void						_restart(std::string const &processName = "");
+	void						_stop(std::string const &processName = "");
+	void						_status(std::string const &processName = "");
+	void						_reload(std::string const &processName = "");
+	void						_exit(void);
 
 	Taskmaster();
 	Taskmaster(Taskmaster const &);
 	Taskmaster const &			operator=(Taskmaster const &);
-
 public:
 	Taskmaster(int ac, char **av);
 	~Taskmaster();

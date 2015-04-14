@@ -13,11 +13,10 @@
 #include <iostream>
 #include "Taskmaster.hpp"
 
-int 					main(int ac, char av) {
+int 					main(int ac, char **av) {
 	try {
 		Taskmaster		taskmaster(ac, av);
 
-		sigleton_taskmaster(&taskmaster);
 		taskmaster.run();
 	} catch (std::exception & e) {
 		return 1;

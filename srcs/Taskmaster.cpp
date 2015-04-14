@@ -16,11 +16,11 @@ Taskmaster::Taskmaster(int ac, char **av) : _parse(ac, av) {
 	// init parse
 	this->_logFile = this->_parse.getLogFile();
 	// init log file
-	this->_cmds[START] = &Taskmaster::start;
-	this->_cmds[RESTART] = &Taskmaster::restart;
-	this->_cmds[STOP] = &Taskmaster::stop;
-	this->_cmds[STATUS] = &Taskmaster::status;
-	this->_cmds[RELOAD] = &Taskmaster::reload;
+	this->_cmds[START] = &Taskmaster::_start;
+	this->_cmds[RESTART] = &Taskmaster::_restart;
+	this->_cmds[STOP] = &Taskmaster::_stop;
+	this->_cmds[STATUS] = &Taskmaster::_status;
+	this->_cmds[RELOAD] = &Taskmaster::_reload;
 }
 
 
@@ -28,85 +28,86 @@ Taskmaster::Taskmaster(int ac, char **av) : _parse(ac, av) {
 /*******COMMANDS*******/
 /**********************/
 
-void				Taskmaster::start(std::string const &processName == "") {
+void				Taskmaster::_start(std::string const &processName) {
 
-	if (cmd == "") {
-		for (ProcessList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
-			it->start();
+	if (processName == "") {
+		for (PList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
+			it->second->start();
 		}
 	} else {
 		if (this->_process.find(processName) != this->_process.end()) {
-			this->_process[processName].start();
+			this->_process[processName]->start();
 		} else {
 			std::cerr << "ERROR : process name '" << processName << "' unknow" << std::endl;
 		}
 	}
 }
 
-void				Taskmaster::restart(std::string const &processName == "") {
+void				Taskmaster::_restart(std::string const &processName) {
 
-	if (cmd == "") {
-		for (ProcessList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
-			it->restart();
+	if (processName == "") {
+		for (PList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
+			it->second->restart();
 		}
 	} else {
 		if (this->_process.find(processName) != this->_process.end()) {
-			this->_process[processName].restart();
+			this->_process[processName]->restart();
 		} else {
 			std::cerr << "ERROR : process name '" << processName << "' unknow" << std::endl;
 		}
 	}
 }
 
-void				Taskmaster::stop(std::string const &processName == "") {
+void				Taskmaster::_stop(std::string const &processName) {
 
-	if (cmd == "") {
-		for (ProcessList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
-			it->stop();
+	if (processName == "") {
+		for (PList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
+			it->second->stop();
 		}
 	} else {
 		if (this->_process.find(processName) != this->_process.end()) {
-			this->_process[processName].stop();
+			this->_process[processName]->stop();
 		} else {
 			std::cerr << "ERROR : process name '" << processName << "' unknow" << std::endl;
 		}
 	}
 }
 
-void				Taskmaster::status(std::string const &processName == "") {
+void				Taskmaster::_status(std::string const &processName) {
 
-	if (cmd == "") {
-		for (ProcessList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
-			it->status();
+	if (processName == "") {
+		for (PList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
+			it->second->status();
 		}
 	} else {
 		if (this->_process.find(processName) != this->_process.end()) {
-			this->_process[processName].status();
+			this->_process[processName]->status();
 		} else {
 			std::cerr << "ERROR : process name '" << processName << "' unknow" << std::endl;
 		}
 	}
 }
 
-void				Taskmaster::reload(std::string const &processName == "") {
+void				Taskmaster::_reload(std::string const &processName) {
 	this->_parse.reloadFile();
 
-	if (cmd == "") {
-		MStrStr 	infoAllProcess = this->_parse.getAllProcess();
+	if (processName == "") {
+		mStrStr 	infoAllProcess = this->_parse.getAllProcess();
 
 		for (PList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
 			if (infoAllProcess.find(it->first) != infoAllProcess.end())
-				it->reload(infoAllProcess[it->first]);
+				it->second->reload(infoAllProcess[it->first]);
 			else
-				this->deleteProcess(it->second);
+				this->_deleteProcess(it->first);
 		}
-		for (MStrStr::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
+		for (mStrStr::iterator it = infoAllProcess.begin(); it != infoAllProcess.end(); ++it) {
 			if (this->_process.find(it->first) == this->_process.end())
-				this->createProcess(it->first, it->second);
+				this->_createProcess(it->first, it->second);
 		}
 	} else {
+		StrStr 	infoProcess = this->_parse.getProcess(processName);
 		if (this->_process.find(processName) != this->_process.end()) {
-			this->_process[processName].reload();
+			this->_process[processName]->reload(infoProcess);
 		} else {
 			std::cerr << "ERROR : process name '" << processName << "' unknow" << std::endl;
 		}
@@ -114,7 +115,7 @@ void				Taskmaster::reload(std::string const &processName == "") {
 }
 
 void				Taskmaster::_exit(void) {
-	this->deleteProcess();
+	this->_deleteProcess();
 	return ;
 }
 
@@ -122,28 +123,15 @@ void				Taskmaster::_exit(void) {
 /***********RUN***********/
 /*************************/
 
-void				Taskmaster::deleteProcess(std::string const &name) {
+void				Taskmaster::_autoStart(std::string const &processName) {
 
-}
-
-void				Taskmaster::createProcess(std::string const &name, StrStr const &infoNewProcess) {
-
-	//autoStart
-}
-
-void				Taskmaster::autoStart(std::string const &processName == "") {
-
-	if (cmd == "") {
-		for (ProcessList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
-			if (it->getAutostart() == true && it->getState() == STOP) {
-				it->start();
-			}
+	if (processName == "") {
+		for (PList::iterator it = this->_process.begin(); it != this->_process.end(); ++it) {
+			it->second->autostart();
 		}
 	} else {
 		if (this->_process.find(processName) != this->_process.end()) {
-			if (it->getAutostart() == true && it->getState() == STOP) {
-				this->_process[processName].start();
-			}
+			this->_process[processName]->autostart();
 		} else {
 			std::cerr << "ERROR : process name unknow" << std::endl;
 		}
@@ -151,10 +139,26 @@ void				Taskmaster::autoStart(std::string const &processName == "") {
 	return ;
 }
 
+void				Taskmaster::_deleteProcess(std::string const &processName) {
+	if (processName == "") {
+		return ;
+	} else {
+		return ;
+	}
+	return ;
+}
+
+void				Taskmaster::_createProcess(std::string const &name, StrStr const &infoNewProcess) {
+	Process 		*newProcess = new Process(name, this->_logFile, infoNewProcess);
+
+	this->_process[name] = newProcess;
+}
+
+
 void						Taskmaster::run(void) {
 	std::string 			line;
 
-	this->reload("");
+	this->_reload();
 	std::cout << "Taskmaster$>";
 	std::getline(std::cin, line);
 	while (line != EXIT) {
@@ -166,7 +170,7 @@ void						Taskmaster::run(void) {
 		ss >> command;
 		ss >> params;
 		if (this->_cmds.find(command) != this->_cmds.end()) {
-			commandFunc 		func = this->_cmds[command];
+			Cmd 			func = this->_cmds[command];
 			(this->*func)(params);
 		} else {
 			std::cerr << "ERROR : command '" << command << "'' unknow." << std::endl;
