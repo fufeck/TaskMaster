@@ -14,7 +14,11 @@
 
 Taskmaster::Taskmaster(int ac, char **av) : _parse(ac, av) {
 	// init parse
-	this->_logFile = this->_parse.getLogFile();
+	std::string 		logFileName = this->_parse.getLogFileName();
+	this->_logFile.open(logFileName);
+	if (!this->_logFile.is_open()) {
+		std::cerr << "ERROR file : log file '" << logFileName << " cant be opened." << std::endl;
+	}
 	// init log file
 	this->_cmds[START] = &Taskmaster::_start;
 	this->_cmds[RESTART] = &Taskmaster::_restart;

@@ -12,34 +12,44 @@
 
 #include "ParseYaml.hpp"
 
-ParseYaml::ParseYaml(int ac, char **) {
-	if (ac != 2)
-		//throw expection
-	this->_fileName = av[1];
-	this->_reloadFile();
-	if (!this->_logFile.is_open()) {
-		//throw
+ParseYaml::ParseYaml(int ac, char **av) {
+	if (ac != 2) {
+		std::cerr << "Usage : ./Taskmaster file.conf" << std::endl;
+		throw std::exception;
 	}
+	this->_fileNameConf = av[1];
+	this->_logFileName = "";
+	this->reloadFile();
 }
 
 ParseYaml::~ParseYaml() {
-	this->_logFile.close();
+
 }
 
-
-std::ofstream			ParseYaml::getLogFile(void) {
-	return this->_logFile;
+std::string				ParseYaml::getLogFileName(void) {
+	return this->_logFileName;
 }
 
-mStrStr					ParseYaml::getAllProcess(void) const {
-	return this->_tmp;
+m_feature				ParseYaml::getAllProcessFeature(void) const {
+	return this->_processFeature;
 }
 
-StrStr					ParseYaml::getProcess(std::string const &name) const {
-	for (mStrStr::iterator it = this->_tmp.begin(); it != this->_tmp.end(); it++) {
+ProcessFeature			ParseYaml::getProcessFeature(std::string const &name) const {
+	ProcessFeature 		res;
+
+	for (m_str_feature::iterator it = this->_processFeature.begin(); it != this->_processFeature.end(); it++) {
 		if (it->first == name) {
-			return it->second;
+			res = it->second;
 		}
+	}
+	return res;
+}
+
+void					ParseYaml::replace(std::string & str, std::string s1, std::string s2) {
+	int a = 0;
+
+	while ((a = str.find(s1)) >= 0) {
+		str.replace(a, a, s2);
 	}
 }
 
@@ -48,43 +58,46 @@ void					ParseYaml::reloadFile(void) {
 	int					nbLine = 0;
 	std::string			currentProcess = "";
 
-	this->_file.open(av[1]);
+	file.open(this->_fileName);
 	if (!file.is_open()) {
-		//throw
+		std::cerr << "ERROR file : " << this->_fileName << " cant be opened." << std::endl;
+		throw std::exception;
 	}
 	while (file.tellg() > 0) {
 		std::string			line = "";
 		std::getline(file, line);
-
-		line = line.replace(" ", "");
-		if ((int a = line.find(";")) != line.end())
+		ParseYaml::replace(line, std::string(" "), std::string(""));
+		int a = -1;
+		if ((a = line.find(";")) >= 0)
 			line = line.substr(0, a);
-		if (line.size() > 0 && line.find("[program:") == 0) {
+		if (line.size() > 0 && line.find(PROGRAM_DE) == 0) {
 			if (line.find("]") != line.size())
-				//throw
+				std::cerr << "ERROR file : in line " << nbLine << " bad syntax." << std::endl;
 
 			currentProcess = line.substr(9, line.size() - 1);
-			if (currentProcess)
-				//throw
-//			this->_tmp[currentProcess] = std::map<std::string, StrStr> );
-		} else if (line.size() > 0 && line == "[Taskmaster]") {
+			if (this->_processFeature.find(currentProcess) != this->_processFeature.end())
+				std::cerr << "ERROR file : in line " << nbLine << " twice program name." << std::endl;
+			this->_processFeature(currentProcess, ProcessFeature(currentProcess));
+		} else if (line.size() > 0 && line == TASKMASTER_DE) {
 			currentProcess = "Taskmaster";
 		} else if (line.size() > 0) {
 			if (currentProcess == "")
-				//throw
+				std::cerr << "ERROR file : in line " << nbLine << " no program has been said before params." << std::endl;
 			if (currentProcess == "Taskmaster") {
 				if (line != "logfile=")
-					//throw
-				this->_logFile.open(line.substr(8, line.size()));
-				if (!this->_logFile.is_open()) {
-					//throw
-				}
+					std::cerr << "ERROR file : in line " << nbLine << " bad syntax" << std::endl;
+				this->_logFileName = line.substr(8, line.size());
 			} else {
-				if (line.find('=') == line.end() && line.find('=') <= 0 && line.find('=') >= line.size())
-					//throw
-				this->_tmp[currentProcess][line.substr(0, "=")] = line.substr(line.find('='), line.size());
+				this->_processFeature[currentProcess].setFeature(line, nbLine);
 			}
 		}
 		nbLine++;
 	}
+	for (m_str_feature::iterator it = this->_processFeature.begin(); it != this->_processFeature.end(); it++) {
+		if (!it->second.isGood()) {
+			std::cerr << "ERROR : " << it->first << " too much error to create process." << std::endl;
+			this->_processFeature(it);
+		}
+	}
+	file.close();
 }

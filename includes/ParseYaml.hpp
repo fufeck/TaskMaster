@@ -13,30 +13,38 @@
 #ifndef PARSE_YAML_HPP
 # define PARSE_YAML_HPP
 
+#include <iostream>
 #include <fstream>
 #include <map>
+#include <vector>
 #include <string>
+#include "ProcessFeature.hpp"
 
+#define		TASKMASTER_DE	"[Taskmaster]"
+#define		PROGRAM_DE		"[program:"
 
-typedef std::map<std::string, std::string>		StrStr;
-typedef std::map<std::string, StrStr>			mStrStr;
+typedef	std::map<std::string, ProcessFeature> m_str_feature
 
 class ParseYaml
 {
-	mStrStr					_tmp;
-	std::string				_fileName;
-	std::ofstream   		_logFile;
+public:
+	static void				replace(std::string & str, std::string s1, std::string s2);
+	
+private:
+	std::string				_confFileName;
+	std::string   			_logFileName;
+	m_feature				_processFeature;
 
 	ParseYaml();
 	ParseYaml(ParseYaml const &);
-	ParseYaml const &		operator=(ParseYaml const &);
+	ParseYaml const &			operator=(ParseYaml const &);
 public:
-	ParseYaml(int ac, char **);
+	ParseYaml(int ac, char **av);
 	~ParseYaml();
 
-	std::ofstream			getLogFile(void);
-	mStrStr					getAllProcess(void) const;
-	StrStr					getProcess(std::string const &name) const;
+	std::string				getLogFileName(void);
+	m_feature				getAllProcessFeature(void) const;
+	ProcessFeature			getProcessFeature(std::string const &name) const;
 
 	void					reloadFile(void);
 };
