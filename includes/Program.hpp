@@ -61,7 +61,7 @@ public:
 	void								start(void);
 	void								restart(void);
 	void								stop(void);
-	void								status(void) const;
+	void								status(void);
 	void								reload(ProgramFeature const &);
 	
 	/***GETTEUR***/

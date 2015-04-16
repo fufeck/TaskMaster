@@ -189,6 +189,7 @@ void								Program::autostart(void) {
 }
 
 void								Program::start(void) {
+
 	this->_mutex.lock();
 	if (this->_state == STOPPED) {
 		//START PROCESS (thread + fork)
@@ -200,31 +201,47 @@ void								Program::start(void) {
 	} else if (this->_state == ERROR) {
 		//this->_logFile << this->_name << " dont be running." << std::endl;
 	}
+	this->_mutex.unlock();
 }
 
 void								Program::restart(void) {
 
-	if (this->_state == RUNNING)
-		this->stop();
-	if (this->_state == STOPPED)
-		this->start();
-}
-
-void								Program::stop(void) {
+	this->_mutex.lock();
 	if (this->_state == RUNNING) {
-		//STOP PROCESS (kill fork + delete thread)
-		kill(this->_pidChild, this->_feature.getStopSignal());
-		if (this->_state != STOPPED) {
-			//this->_logFile << this->_name << " can not be stopped." << std::endl;
-		}
-	} else if (this->_state == STOPPED) {
-		//this->_logFile << this->_name << " is already stopped." << std::endl;
-	} else if (this->_state == ERROR) {
-		//this->_logFile << this->_name << " process have an error." << std::endl;
+		this->_mutex.unlock();
+		this->stop();
+	}
+	if (this->_state == STOPPED) {
+		this->_mutex.unlock();
+		this->start();
+	} else {
+		this->_mutex.unlock();
 	}
 }
 
-void								Program::status(void) const {
+void								Program::stop(void) {
+	this->_mutex.lock();
+	if (this->_state == RUNNING) {
+		//STOP PROCESS (kill fork + delete thread)
+		this->_mutex.unlock();
+		kill(this->_pidChild, this->_feature.getStopSignal());
+		sleep(2);
+		this->_mutex.lock();
+		if (this->_state != STOPPED) {
+			std::cerr << this->_feature.getProgramName() << " cant be stopped." << std::endl;
+		} else {
+			std::cout << this->_feature.getProgramName() << " is stopped." << std::endl;
+		}
+	} else if (this->_state == STOPPED) {
+		std::cout << this->_feature.getProgramName() << " is already stopped." << std::endl;
+	} else if (this->_state == ERROR) {
+		std::cout << this->_feature.getProgramName() << " have an error." << std::endl;
+	}
+	this->_mutex.unlock();
+}
+
+void								Program::status(void) {
+	this->_mutex.lock();
 	std::cout << this->_feature.getProgramName();
 	std::cout << "	";
 	for (std::map<std::string, eState>::const_iterator it = this->_mapState.begin(); it != this->_mapState.end(); it++)
@@ -238,9 +255,23 @@ void								Program::status(void) const {
 		std::cout << this->_lastTime;
 	}
 	std::cout << std::endl;
+	this->_mutex.unlock();
 }
 
 void								Program::reload(ProgramFeature const & newFeature) {
-	static_cast<void>(newFeature);
+	this->_mutex.lock();
+	cmpFeature						lvlReload = (this->_feature == newFeature);
+
+	if (lvlReload == MUST_RESTART) {
+		this->_mutex.unlock();
+		this->stop();
+		this->_feature = newFeature;
+		this->start();
+	} else if (lvlReload == NO_RESTART) {
+		this->_feature = newFeature;
+		this->_mutex.unlock();
+	} else {
+		this->_mutex.unlock();
+	}
 	return ;
 }

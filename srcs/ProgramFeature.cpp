@@ -99,6 +99,7 @@ ProgramFeature::ProgramFeature(ProgramFeature const &other) : _programName(other
 ProgramFeature::~ProgramFeature(void) {}
 
 ProgramFeature&						ProgramFeature::operator=(ProgramFeature const & other) {
+	this->_programName = other.getProgramName();
 	this->_processName = other.getProcessName();
 	this->_command = other.getCommand();
 	this->_directory = other.getDirectory();
