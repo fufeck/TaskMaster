@@ -18,12 +18,12 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "ProcessFeature.hpp"
+#include "ProgramFeature.hpp"
 
 #define		TASKMASTER_DE	"[Taskmaster]"
 #define		PROGRAM_DE		"[program:"
 
-typedef	std::map<std::string, ProcessFeature> m_str_feature
+typedef	std::map<std::string, ProgramFeature> m_feature;
 
 class ParseYaml
 {
@@ -31,9 +31,10 @@ public:
 	static void				replace(std::string & str, std::string s1, std::string s2);
 	
 private:
+	bool					_start;
 	std::string				_confFileName;
 	std::string   			_logFileName;
-	m_feature				_processFeature;
+	m_feature				_programFeature;
 
 	ParseYaml();
 	ParseYaml(ParseYaml const &);
@@ -43,9 +44,10 @@ public:
 	~ParseYaml();
 
 	std::string				getLogFileName(void);
-	m_feature				getAllProcessFeature(void) const;
-	ProcessFeature			getProcessFeature(std::string const &name) const;
+	m_feature				getAllProgramFeature(void) const;
+	ProgramFeature			getProgramFeature(std::string const &name) const;
 
+	bool					getStart(void) const;
 	void					reloadFile(void);
 };
 

@@ -18,14 +18,15 @@ RM			=	rm -rf
 
 INCLUDES	=	-Iincludes
 
-LIBS		=	
+LIBS		=	-std=c++0x
 
 CFLAGS		=	-Werror -Wall -Wextra
 
 SRCS		=	srcs/main.cpp			\
 				srcs/ParseYaml.cpp 		\
 				srcs/Taskmaster.cpp		\
-				srcs/Process.cpp
+				srcs/ProgramFeature.cpp	\
+				srcs/Program.cpp
 				
 				
 OBJS		=	$(SRCS:.cpp=.o)
@@ -36,7 +37,7 @@ $(NAME)		:	$(OBJS)
 				$(CC) -o $@ $(CFLAGS) $(OBJS) $(LIBS) $(INCLUDES)
 
 .cpp.o		:
-				$(CC) -o $@ $(CFLAGS) $(INCLUDES) -c $<
+				$(CC) -o $@ $(CFLAGS) $(INCLUDES) $(LIBS) -c $<
 
 clean		:
 				$(RM) $(OBJS)

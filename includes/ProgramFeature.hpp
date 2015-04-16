@@ -1,7 +1,7 @@
 // ************************************************************************** //
 //                                                                            //
 //                                                        :::      ::::::::   //
-//   ProcessFeature.hpp                                 :+:      :+:    :+:   //
+//   ProgramFeature.hpp                                 :+:      :+:    :+:   //
 //                                                    +:+ +:+         +:+     //
 //   By: ftaffore <ftaffore@student.42.fr>          +#+  +:+       +#+        //
 //                                                +#+#+#+#+#+   +#+           //
@@ -10,9 +10,13 @@
 //                                                                            //
 // ************************************************************************** //
 
-#ifndef PROCESS_FEATURE_HPP
-# define PROCESS_FEATURE_HPP
+#ifndef PROGRAM_FEATURE_HPP
+# define PROGRAM_FEATURE_HPP
 
+#include <signal.h>
+#include <sstream>
+#include <stdlib.h>
+#include <iostream>
 #include <map>
 #include <vector>
 #include <string>
@@ -34,19 +38,19 @@
 #define		ENV 			"environment"
 
 typedef std::map<std::string, std::string>	m_str;
-typedef std::vector<int> 					v_int
+typedef std::vector<int> 					v_int;
 
 enum cmpFeature {MUST_RESTART, NO_RESTART, NOTHING};
-enum eRestart {ALREADY, UNEXPECTED, NEVER};
+enum eRestart {ALL_THE_TIME, UNEXPECTED, NEVER};
 
-class ProcessFeature
+class ProgramFeature
 {
 public:
-	typedef							void (ProcessFeature::*setFunc)(std::string const & command, int nbLine);
+	typedef							void (ProgramFeature::*setFunc)(std::string const & command, int nbLine);
 
-	const std::string					_programName;
+	std::string							_programName;
 
-	std::string 						_nameProcess;
+	std::string 						_processName;
 	std::string							_command;
 	std::string 						_directory;
 	v_int 								_umask;
@@ -63,13 +67,18 @@ public:
 
 
 	std::map<std::string, setFunc>		_mapSet;
-
-	ProcessFeature(std::string const &programName);
-	~ProcessFeature();
+	
+	ProgramFeature();
+	ProgramFeature(std::string const &programName);
+	ProgramFeature(ProgramFeature const &);
+	~ProgramFeature();
+	ProgramFeature&						operator=(ProgramFeature const & other);
+	cmpFeature							operator==(ProgramFeature const & other) const;
+	void								replace(std::string & str, std::string s1, std::string s2);
 
 	void								setCommand(std::string const & command, int nbLine);
-	void								setName(std::string const & processName, int nbLine);
-	void								setDirectory(std::string const & processName, int nbLine);
+	void								setProcessName(std::string const & processName, int nbLine);
+	void								setDirectory(std::string const & directory, int nbLine);
 	void								setUmask(std::string const & umask, int nbLine);
 	void								setNumProcs(std::string const & numProcs, int nbLine);
 	void								setAutoStart(std::string const & autostart, int nbLine);
@@ -80,12 +89,13 @@ public:
 	void								setRedirectStderr(std::string const & redirect_stderr, int nbLine);
 	void								setStdoutLogfile(std::string const & stdoutlogfile, int nbLine);
 	void								setStderrLogfile(std::string const & stderrlogfile, int nbLine);
-	void								setStderrVarEnv(std::string const & env, int nbLine);
-	void								setParams(std::string const & line, int nbLine);
+	void								setEnv(std::string const & env, int nbLine);
+	void								setFeature(std::string const & line, int nbLine);
 	bool								isGood(void) const;
 
+	std::string	const					getProgramName(void) const;
 	std::string							getCommand(void) const;
-	std::string							getName(void) const;
+	std::string							getProcessName(void) const;
 	std::string							getDirectory(void) const;
 	v_int								getUmask(void) const;
 	int									getNumProcs(void) const;

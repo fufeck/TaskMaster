@@ -20,7 +20,7 @@
 #include <list>
 #include <string>
 #include "ParseYaml.hpp"
-#include "Process.hpp"
+#include "Program.hpp"
 
 #define	START 		"start"
 #define	RESTART 	"restart"
@@ -29,30 +29,29 @@
 #define	RELOAD 		"reload"
 #define	EXIT 		"exit"
 
-typedef				std::map<std::string, Process *> PList;
+typedef				std::map<std::string, Program *> PList;
 
 class Taskmaster
 {
 public:
-	typedef							void (Taskmaster::*CmdFunc)(std::string const &cmd);
+	typedef							void (Taskmaster::*CmdFunc)(std::string const &programName);
 
 private:
 	ParseYaml						_parse;
 
 	std::map<std::string, CmdFunc>	_cmds;
-	PList							_process;
+	PList							_programs;
 	std::ofstream					_logFile;
 
-	void							_autoStart(std::string const &processName = "");
-	void							_deleteProcess(std::string const &name = "");
-	void							_createProcess(std::string const &name, StrStr const &infoNewProcess);
-	void							_exit(void);
+	void							_start(std::string const &programName = "");
+	void							_restart(std::string const &programName = "");
+	void							_stop(std::string const &programName = "");
+	void							_status(std::string const &programName = "");
+	void							_reload(std::string const &programName = "");
 
-	void							_start(std::string const &processName = "");
-	void							_restart(std::string const &processName = "");
-	void							_stop(std::string const &processName = "");
-	void							_status(std::string const &processName = "");
-	void							_reload(std::string const &processName = "");
+	void							_delProgram(std::string const &name = "");
+	void							_addProgram(std::string const &nameProgram, ProgramFeature const &newProgramFeature);
+	void							_exit(void);
 
 	Taskmaster();
 	Taskmaster(Taskmaster const &);

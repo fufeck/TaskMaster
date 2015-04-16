@@ -1,7 +1,7 @@
 // ************************************************************************** //
 //                                                                            //
 //                                                        :::      ::::::::   //
-//   Process.hpp                                        :+:      :+:    :+:   //
+//   Program.hpp                                        :+:      :+:    :+:   //
 //                                                    +:+ +:+         +:+     //
 //   By: ftaffore <ftaffore@student.42.fr>          +#+  +:+       +#+        //
 //                                                +#+#+#+#+#+   +#+           //
@@ -10,9 +10,13 @@
 //                                                                            //
 // ************************************************************************** //
 
-#ifndef PROCESS_HPP
-# define PROCESS_HPP
+#ifndef PROGRAM_HPP
+# define PROGRAM_HPP
 
+#include <functional>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fstream>
@@ -23,17 +27,17 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "ProcessFeature.hpp"
+#include "ProgramFeature.hpp"
 
 enum eState {STOPPED, RUNNING, ERROR};
 
-class Process
+class Program
 {
 private:
 	eState								_state;
 	pid_t								_pidChild;
 	clock_t 							_lastTime;
-	ProcessFeature						_feature;
+	ProgramFeature						_feature;
 	std::mutex							_mutex;
 
 	// map
@@ -42,27 +46,27 @@ private:
 
 	void 								_setUmask(void);
 	void 								_setDirectory(void);
-	void 								_executeProcess(void);
-	void								_threadFunc(void);
+	void 								_executeProgram(void);
+	void 								_redirectLogfile(std::string const &fileName, int start);
 
-	Process();
-	Process(Process const &);
-	Process const &						operator=(Process const &);
-
+	Program const &						operator=(Program const &);
+	Program(Program const &);
+	Program();
 public:
-	Process(ProcessFeature);
-	~Process(void);
+	Program(ProgramFeature);
+	~Program(void);
+	void								runProgram(void);
 
 	void								autostart(void);
 	void								start(void);
 	void								restart(void);
 	void								stop(void);
-	void								status(void);
-	void								reload(StrStr const &newProcess);
-	void								exit(void);
+	void								status(void) const;
+	void								reload(ProgramFeature const &);
 	
 	/***GETTEUR***/
 	eState								getState(void) const;
+	ProgramFeature						getFeature(void) const;
 };
 
 #endif
