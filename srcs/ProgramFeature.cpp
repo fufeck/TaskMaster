@@ -136,6 +136,32 @@ cmpFeature							ProgramFeature::operator==(ProgramFeature const & other) const 
 	return NOTHING;
 }
 
+void								ProgramFeature::display(void) const {
+	std::cout << "programName = " << this->_programName << std::endl;
+	std::cout << "processName = " << this->_processName << std::endl;
+	std::cout << "comand = " << this->_command << std::endl;
+	std::cout << "directory = " << this->_directory << std::endl;
+	std::cout << "umask = ";
+	for (unsigned int i = 0; i < this->_umask.size(); i++) {
+		std::cout << this->_umask[i] << " ";
+	}
+	std::cout << std::endl;
+	std::cout << "numProcs = " << this->_numprocs << std::endl;
+	std::cout << "autostart = " << this->_autostart << std::endl;
+	std::cout << "autorestart = " << this->_autorestart << std::endl;
+	std::cout << "exitcodes = ";
+	for (unsigned int i = 0; i < this->_exitcodes.size(); i++) {
+		std::cout << this->_exitcodes[i] << " ";
+	}
+	std::cout << std::endl;
+	std::cout << "stopsignal = " << this->_stopsignal << std::endl;
+	std::cout << "stopwaitsecs = " << this->_stopwaitsecs << std::endl;
+	std::cout << "redirect_stderr = " << this->_redirect_stderr << std::endl;
+	std::cout << "stdoutlogfile = " << this->_stdoutlogfile << std::endl;
+	std::cout << "stderrlogfile = " << this->_stderrlogfile << std::endl;
+
+}
+
 void								ProgramFeature::setCommand(std::string const & command, int nbLine) {
 	if (command.size() <= 0) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'command' is empty" << std::endl;
@@ -144,13 +170,15 @@ void								ProgramFeature::setCommand(std::string const & command, int nbLine) 
 }
 
 void								ProgramFeature::setProcessName(std::string const & processName, int nbLine) {
+	std::cout << "--------------------------> " << processName << ">>" << std::endl;
 	if (processName.size() <= 0) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'process_name' is empty" << std::endl;
 	} else if (processName == "(program_name)") {
-		this->_processName = processName;
+		this->_processName = this->_programName;
 	} else {
 		this->_processName = processName;
 	}
+	std::cout << "this->_processName " << this->_processName << std::endl;
 }
 
 void								ProgramFeature::setDirectory(std::string const & directory, int nbLine) {
@@ -293,7 +321,9 @@ void								ProgramFeature::setFeature(std::string const & line, int nbLine) {
 		std::cerr << "ERROR file : in line " << nbLine << " bad syntax" << std::endl;
 	else {
 		std::string 				key = line.substr(0, line.find('='));
-		std::string 				value = line.substr(line.find('='), line.size());
+		std::string 				value = line.substr(line.find('=') + 1, line.size());
+		std::cout << "key = " << key << std::endl;
+		std::cout << "value = " << value << std::endl << std::endl;
 		if (this->_mapSet.find(key) != this->_mapSet.end()) {
 			setFunc 		func = this->_mapSet[key];
 			(this->*func)(value, nbLine);

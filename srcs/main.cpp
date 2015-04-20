@@ -17,7 +17,7 @@ int 					main(int ac, char **av) {
 	try {
 		Taskmaster		taskmaster(ac, av);
 
-		taskmaster.run();
+		//taskmaster.run();
 	} catch (std::exception & e) {
 		return 1;
 	}

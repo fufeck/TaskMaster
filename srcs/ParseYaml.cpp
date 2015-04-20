@@ -50,21 +50,37 @@ ProgramFeature			ParseYaml::getProgramFeature(std::string const &programName) co
 	return res;
 }
 
-void					ParseYaml::replace(std::string & str, std::string s1, std::string s2) {
-	int a = 0;
+void					ParseYaml::_empturStr(std::string & line) {
+	int 				c = -1;
+	if ((c = line.find(";")) >= 0)
+		line = line.substr(0, c);
 
-	while ((a = str.find(s1)) >= 0) {
-		str.replace(a, a, s2);
+	unsigned int a = 0;
+	while ((a < line.size() && line[a] ==  ' ') || (a < line.size() && line[a] == '\t'))
+		a++;
+	if (line.size() > 0) {
+
+		int b = line.size() - 1;
+		while ((b > 0 && line[b] ==  ' ') || (b > 0 && line[b] == '\t'))
+			b--;
+		line = line.substr(a, b + 1);
 	}
+
 }
 
 bool					ParseYaml::getStart(void) const {
 	return this->_start;
 }
 
+void					ParseYaml::dd(void) {
+	for (m_feature::const_iterator it = this->_programFeature.begin(); it != this->_programFeature.end(); it++) {
+		it->second.display();
+	}
+}
+
 void					ParseYaml::reloadFile(void) {
 	std::ifstream   	file;
-	int					nbLine = 0;
+	int					nbLine = 1;
 	std::string			currentProgram = "";
 
 	file.open(this->_confFileName);
@@ -72,33 +88,40 @@ void					ParseYaml::reloadFile(void) {
 		std::cerr << "ERROR file : " << this->_confFileName << " cant be opened." << std::endl;
 		throw std::exception();
 	}
-	while (file.tellg() > 0) {
+	while (file.tellg() >= 0) {
+
 		std::string			line = "";
 		std::getline(file, line);
-		ParseYaml::replace(line, std::string(" "), std::string(""));
-		int a = -1;
-		if ((a = line.find(";")) >= 0)
-			line = line.substr(0, a);
+		this->_empturStr(line);
 		if (line.size() > 0 && line.find(PROGRAM_DE) == 0) {
-			if (line.find("]") != line.size())
+			if (line.find("]") != line.size() - 1) {
 				std::cerr << "ERROR file : in line " << nbLine << " bad syntax." << std::endl;
-
-			currentProgram = line.substr(9, line.size() - 1);
-			if (this->_programFeature.find(currentProgram) != this->_programFeature.end())
-				std::cerr << "ERROR file : in line " << nbLine << " twice program name." << std::endl;
-			ProgramFeature 		newProgram(currentProgram);
-			this->_programFeature[currentProgram] = newProgram;
+				currentProgram = "";
+			}
+			else {
+				currentProgram = line.substr(9, line.size() - 10);
+				if (this->_programFeature.find(currentProgram) != this->_programFeature.end())
+					std::cerr << "ERROR file : in line " << nbLine << " twice program name." << std::endl;
+				else {
+					ProgramFeature 		newProgram(currentProgram);
+					this->_programFeature[currentProgram] = newProgram;
+				}
+				
+			}
 		} else if (line.size() > 0 && line == TASKMASTER_DE) {
 			currentProgram = "Taskmaster";
 		} else if (line.size() > 0) {
-			if (currentProgram == "")
-				std::cerr << "ERROR file : in line " << nbLine << " no program has been said before params." << std::endl;
 			if (currentProgram == "Taskmaster") {
-				if (line != "logfile=")
+				if (line.substr(0, 8) != "logfile=")
 					std::cerr << "ERROR file : in line " << nbLine << " bad syntax." << std::endl;
-				this->_logFileName = line.substr(8, line.size());
+				else
+					this->_logFileName = line.substr(8, line.size());
 			} else {
-				this->_programFeature[currentProgram].setFeature(line, nbLine);
+				if (this->_programFeature.find(currentProgram) == this->_programFeature.end()) {
+					std::cerr << "No program declare to params in line " << nbLine << "." << std::endl;
+				} else {
+					this->_programFeature[currentProgram].setFeature(line, nbLine);
+				}
 			}
 		}
 		nbLine++;
@@ -111,4 +134,5 @@ void					ParseYaml::reloadFile(void) {
 	}
 	file.close();
 	this->_start = false;
+	this->dd();
 }

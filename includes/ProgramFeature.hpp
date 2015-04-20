@@ -75,6 +75,7 @@ public:
 	ProgramFeature&						operator=(ProgramFeature const & other);
 	cmpFeature							operator==(ProgramFeature const & other) const;
 	void								replace(std::string & str, std::string s1, std::string s2);
+	void								display(void) const ;
 
 	void								setCommand(std::string const & command, int nbLine);
 	void								setProcessName(std::string const & processName, int nbLine);

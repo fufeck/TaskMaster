@@ -28,7 +28,6 @@ typedef	std::map<std::string, ProgramFeature> m_feature;
 class ParseYaml
 {
 public:
-	static void				replace(std::string & str, std::string s1, std::string s2);
 	
 private:
 	bool					_start;
@@ -36,13 +35,15 @@ private:
 	std::string   			_logFileName;
 	m_feature				_programFeature;
 
+	void					_empturStr(std::string & line);
 	ParseYaml();
 	ParseYaml(ParseYaml const &);
-	ParseYaml const &			operator=(ParseYaml const &);
+	ParseYaml const &		operator=(ParseYaml const &);
 public:
 	ParseYaml(int ac, char **av);
 	~ParseYaml();
 
+	void					dd(void);
 	std::string				getLogFileName(void);
 	m_feature				getAllProgramFeature(void) const;
 	ProgramFeature			getProgramFeature(std::string const &name) const;
