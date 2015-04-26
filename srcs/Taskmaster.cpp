@@ -148,6 +148,7 @@ void				Taskmaster::_delProgram(std::string const &programName) {
 }
 
 void				Taskmaster::_addProgram(std::string const &nameProgram, ProgramFeature const &newProgramFeature) {
+	std::cout << "add prog = " << nameProgram << std::endl;
 	Program 		*newProgram = new Program(newProgramFeature);
 	this->_programs[nameProgram] = newProgram;
 	return ;

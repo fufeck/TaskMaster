@@ -25,9 +25,10 @@ ProgramFeature::ProgramFeature(void) : _programName("unknow") {
 	this->_exitcodes.push_back(1);
 	this->_stopsignal = SIGKILL;
 	this->_stopwaitsecs = 10;
+	this->_startRetries = 3;
 	this->_redirect_stderr = false;
-	this->_stdoutlogfile = "tmp/stdoutLog";
-	this->_stderrlogfile = "tmp/stderrLog";
+	this->_stdoutlogfile = "/tmp/stdoutLog";
+	this->_stderrlogfile = "/tmp/stderrLog";
 
 	this->_mapSet[COMMAND] = &ProgramFeature::setCommand;
 	this->_mapSet[PROCESS_NAME] = &ProgramFeature::setProcessName;
@@ -39,6 +40,7 @@ ProgramFeature::ProgramFeature(void) : _programName("unknow") {
 	this->_mapSet[EXIT_CODES] = &ProgramFeature::setExitcodes;
 	this->_mapSet[STOPSIGNAL] = &ProgramFeature::setStopSignal;
 	this->_mapSet[STOP_WAIT_SECS] = &ProgramFeature::setStopWaitSec;
+	this->_mapSet[START_RETRIES] = &ProgramFeature::setStartRetries;
 	this->_mapSet[REDIRECT_SDTERR] = &ProgramFeature::setRedirectStderr;
 	this->_mapSet[STDOUT_LOGFILE] = &ProgramFeature::setStdoutLogfile;
 	this->_mapSet[STDERR_LOGFILE] = &ProgramFeature::setStderrLogfile;
@@ -58,9 +60,10 @@ ProgramFeature::ProgramFeature(std::string const &programName) : _programName(pr
 	this->_exitcodes.push_back(1);
 	this->_stopsignal = SIGKILL;
 	this->_stopwaitsecs = 10;
+	this->_startRetries = 3;
 	this->_redirect_stderr = false;
-	this->_stdoutlogfile = "tmp/stdoutLog";
-	this->_stderrlogfile = "tmp/stderrLog";
+	this->_stdoutlogfile = "/tmp/stdoutLog";
+	this->_stderrlogfile = "/tmp/stderrLog";
 
 	this->_mapSet[COMMAND] = &ProgramFeature::setCommand;
 	this->_mapSet[PROCESS_NAME] = &ProgramFeature::setProcessName;
@@ -72,6 +75,7 @@ ProgramFeature::ProgramFeature(std::string const &programName) : _programName(pr
 	this->_mapSet[EXIT_CODES] = &ProgramFeature::setExitcodes;
 	this->_mapSet[STOPSIGNAL] = &ProgramFeature::setStopSignal;
 	this->_mapSet[STOP_WAIT_SECS] = &ProgramFeature::setStopWaitSec;
+	this->_mapSet[START_RETRIES] = &ProgramFeature::setStartRetries;
 	this->_mapSet[REDIRECT_SDTERR] = &ProgramFeature::setRedirectStderr;
 	this->_mapSet[STDOUT_LOGFILE] = &ProgramFeature::setStdoutLogfile;
 	this->_mapSet[STDERR_LOGFILE] = &ProgramFeature::setStderrLogfile;
@@ -90,6 +94,7 @@ ProgramFeature::ProgramFeature(ProgramFeature const &other) : _programName(other
 	this->_mapSet[EXIT_CODES] = &ProgramFeature::setExitcodes;
 	this->_mapSet[STOPSIGNAL] = &ProgramFeature::setStopSignal;
 	this->_mapSet[STOP_WAIT_SECS] = &ProgramFeature::setStopWaitSec;
+	this->_mapSet[START_RETRIES] = &ProgramFeature::setStartRetries;
 	this->_mapSet[REDIRECT_SDTERR] = &ProgramFeature::setRedirectStderr;
 	this->_mapSet[STDOUT_LOGFILE] = &ProgramFeature::setStdoutLogfile;
 	this->_mapSet[STDERR_LOGFILE] = &ProgramFeature::setStderrLogfile;
@@ -110,6 +115,7 @@ ProgramFeature&						ProgramFeature::operator=(ProgramFeature const & other) {
 	this->_exitcodes = other.getExitcodes();
 	this->_stopsignal = other.getStopSignal();
 	this->_stopwaitsecs = other.getStopWaitSec();
+	this->_startRetries = other.getStartRetries();
 	this->_redirect_stderr = other.getRedirectStderr();
 	this->_stdoutlogfile = other.getStdoutLogfile();
 	this->_stderrlogfile = other.getStderrLogfile();
@@ -128,6 +134,7 @@ cmpFeature							ProgramFeature::operator==(ProgramFeature const & other) const 
 				this->_exitcodes != other.getExitcodes() ||
 				this->_stopsignal != other.getStopSignal() ||
 				this->_stopwaitsecs != other.getStopWaitSec() ||
+				this->_startRetries != other.getStartRetries() ||
 				this->_redirect_stderr != other.getRedirectStderr() ||
 				this->_stdoutlogfile != other.getStdoutLogfile() ||
 				this->_stderrlogfile != other.getStderrLogfile()) {
@@ -137,7 +144,7 @@ cmpFeature							ProgramFeature::operator==(ProgramFeature const & other) const 
 }
 
 void								ProgramFeature::display(void) const {
-	std::cout << "programName = " << this->_programName << std::endl;
+	std::cout << " [" << this->_programName << "]" << std::endl;
 	std::cout << "processName = " << this->_processName << std::endl;
 	std::cout << "comand = " << this->_command << std::endl;
 	std::cout << "directory = " << this->_directory << std::endl;
@@ -156,9 +163,11 @@ void								ProgramFeature::display(void) const {
 	std::cout << std::endl;
 	std::cout << "stopsignal = " << this->_stopsignal << std::endl;
 	std::cout << "stopwaitsecs = " << this->_stopwaitsecs << std::endl;
+	std::cout << "startretries = " << this->_startRetries << std::endl;
 	std::cout << "redirect_stderr = " << this->_redirect_stderr << std::endl;
 	std::cout << "stdoutlogfile = " << this->_stdoutlogfile << std::endl;
 	std::cout << "stderrlogfile = " << this->_stderrlogfile << std::endl;
+	std::cout << std::endl;
 
 }
 
@@ -170,7 +179,6 @@ void								ProgramFeature::setCommand(std::string const & command, int nbLine) 
 }
 
 void								ProgramFeature::setProcessName(std::string const & processName, int nbLine) {
-	std::cout << "--------------------------> " << processName << ">>" << std::endl;
 	if (processName.size() <= 0) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'process_name' is empty" << std::endl;
 	} else if (processName == "(program_name)") {
@@ -178,7 +186,6 @@ void								ProgramFeature::setProcessName(std::string const & processName, int 
 	} else {
 		this->_processName = processName;
 	}
-	std::cout << "this->_processName " << this->_processName << std::endl;
 }
 
 void								ProgramFeature::setDirectory(std::string const & directory, int nbLine) {
@@ -217,7 +224,7 @@ void								ProgramFeature::setNumProcs(std::string const & numprocs, int nbLine
 }
 
 void								ProgramFeature::setAutoStart(std::string const & autostart, int nbLine) {
-	if (autostart.size() == 0 || autostart != "true" || autostart != "false") {
+	if (autostart.size() == 0 || (autostart != "true" && autostart != "false")) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'autostart' must be 'true' or 'false'" << std::endl;
 	} else {
 		this->_autostart = (autostart == "true") ? (true) : (false);
@@ -225,7 +232,7 @@ void								ProgramFeature::setAutoStart(std::string const & autostart, int nbLi
 }
 
 void								ProgramFeature::setAutoRestart(std::string const & autorestart, int nbLine) {
-	if (autorestart.size() == 0 || autorestart != "allthetime" || autorestart != "never" || autorestart != "unexpected") {
+	if (autorestart.size() == 0 || (autorestart != "allthetime" && autorestart != "never" && autorestart != "unexpected")) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'autorestart' must be 'allthetime' or 'never' or 'unexpected'" << std::endl;
 	} else {
 		this->_autorestart = (autorestart == "allthetime") ? (ALL_THE_TIME) : ((autorestart == "never") ? (NEVER) : (UNEXPECTED));
@@ -266,8 +273,20 @@ void								ProgramFeature::setStopWaitSec(std::string const & stopwaitsecs, int
 	}
 }
 
+void								ProgramFeature::setStartRetries(std::string const & startretries, int nbLine) {
+	if (startretries.size() <= 0) {
+		std::cerr << "ERROR : file in line " << nbLine << " 'startretries' is empty" << std::endl;
+	}
+	int 			nb = atoi(startretries.c_str());
+	if (nb <= 0) {
+		std::cerr << "ERROR : file in line " << nbLine << " 'startretries' is not correct" << std::endl;
+	} else {
+		this->_startRetries = nb;
+	}
+}
+
 void								ProgramFeature::setRedirectStderr(std::string const & redirect_stderr, int nbLine) {
-	if (redirect_stderr.size() == 0 || redirect_stderr != "true" || redirect_stderr != "false") {
+	if (redirect_stderr.size() == 0 || (redirect_stderr != "true" && redirect_stderr != "false")) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'redirect_stderr' must be 'true' or 'false'" << std::endl;
 	} else {
 		this->_redirect_stderr = (redirect_stderr == "true") ? (true) : (false);
@@ -322,8 +341,8 @@ void								ProgramFeature::setFeature(std::string const & line, int nbLine) {
 	else {
 		std::string 				key = line.substr(0, line.find('='));
 		std::string 				value = line.substr(line.find('=') + 1, line.size());
-		std::cout << "key = " << key << std::endl;
-		std::cout << "value = " << value << std::endl << std::endl;
+		//std::cout << "key = <" << key << ">" << std::endl;
+		//std::cout << "value = <" << value <<  ">" << std::endl;
 		if (this->_mapSet.find(key) != this->_mapSet.end()) {
 			setFunc 		func = this->_mapSet[key];
 			(this->*func)(value, nbLine);
@@ -331,6 +350,7 @@ void								ProgramFeature::setFeature(std::string const & line, int nbLine) {
 		else
 			std::cerr << "ERROR file : in line " << nbLine << " key is unknow" << std::endl;
 	}
+//	std::cout << std::endl;
 }
 
 std::string const				ProgramFeature::getProgramName(void) const {
@@ -376,6 +396,12 @@ int									ProgramFeature::getStopSignal(void) const {
 int									ProgramFeature::getStopWaitSec(void) const {
 	return this->_stopwaitsecs;
 }
+
+
+int									ProgramFeature::getStartRetries(void) const {
+	return this->_startRetries;
+}
+
 
 bool								ProgramFeature::getRedirectStderr(void) const {
 	return this->_redirect_stderr;

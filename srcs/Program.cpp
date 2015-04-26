@@ -14,6 +14,7 @@
 
 Program::Program(ProgramFeature programFeature) {
 
+	std::cout << "create Prog" << std::endl;
 	//init var
 	this->_state = STOPPED;
 	this->_feature = programFeature;
@@ -23,6 +24,9 @@ Program::Program(ProgramFeature programFeature) {
 	this->_mapState["RUNNING"] = RUNNING;
 	this->_mapState["ERROR"] = ERROR;
 
+	this->_mapUmask.push_back( std::vector<int>(7));
+	this->_mapUmask.push_back( std::vector<int>(7));
+	this->_mapUmask.push_back( std::vector<int>(7));
 	this->_mapUmask[0][0] = 0;
 	this->_mapUmask[0][1] = S_IRUSR;
 	this->_mapUmask[0][2] = S_IWUSR;
@@ -49,8 +53,19 @@ Program::Program(ProgramFeature programFeature) {
 	this->_mapUmask[2][5] = S_IXOTH | S_IROTH;
 	this->_mapUmask[2][6] = S_IXOTH | S_IWOTH;
 	this->_mapUmask[2][7] = S_IRWXO;
+	std::cout << "autostart" << std::endl;
+	
 	this->autostart();
+	std::cout << "go" << std::endl;
 }
+char* 				gg(const char *cmd) {
+	static char *ptr = NULL;
+
+	if (cmd != NULL)
+		ptr = strdup(cmd);
+	return ptr;
+}
+
 /*
 Program::Program(Program const &other) {
 	this->_state = STOPPED;
@@ -110,11 +125,13 @@ ProgramFeature						Program::getFeature(void) const {
 void 								Program::_setUmask(void) {
 	mode_t							mask = 0;
 
+	//std::cout << "setUmask" << std::endl;
 	mask = (this->_mapUmask[0][this->_feature.getUmask()[0]] | this->_mapUmask[1][this->_feature.getUmask()[1]] | this->_mapUmask[2][this->_feature.getUmask()[2]]);
 	umask(mask);
 }
 
 void 								Program::_setDirectory(void) {
+	//std::cout << "setDirectory" << std::endl;
 	if (chdir(this->_feature.getDirectory().c_str()) < 0) {
 //		this->_logFile << this->_name << " => ERROR : directory is incorrect." << std::endl;
 		std::cerr << this->_feature.getProgramName() << " => ERROR : directory is incorrect." << std::endl;
@@ -123,18 +140,43 @@ void 								Program::_setDirectory(void) {
 }
 
 void 								Program::_executeProgram(void) {
+	std::cout << "execute >>" << std::endl;
+	int 							ret = 0;
+	char 							*command = gg(NULL);
+
+	std::cout << "execute >>" << std::endl;
+	printf("command = %s\n", command);
+	if (this->_feature.getEnv().size() > 0) {
+		char 							env[this->_feature.getEnv().size()][100];
+		bzero(env, this->_feature.getEnv().size() * 100);
+		int i = 0;
+		for (m_str::const_iterator it = this->_feature.getEnv().begin(); it != this->_feature.getEnv().end(); it++) {
+			strcat(env[i], it->first.c_str());
+			strcat(env[i], "=");
+			strcat(env[i], it->second.c_str());
+			i++;
+		}
+		std::cout << "with env : " << command << std::endl;
+		ret = execle("/bin/sh", "sh", "-c", command, env);
+	} else {
+		std::cout << "without env : " << command << std::endl;
+		ret = execle("/bin/sh", "sh", "-c", command, NULL);
+	}
+	printf("exec fail : %s\n", strerror(errno));
+	exit(1);
 	//execl(const char * path, const char * arg, ...);
 	//this->_logFile << this->_name << " => ERROR : execute command." << std::endl;
-	std::cerr << this->_feature.getProgramName() << " => ERROR : execute command." << std::endl;
-	throw std::exception();
+	//std::cerr << this->_feature.getProgramName() << " => ERROR : execute command." << std::endl;
+	//throw std::exception();
 }
 
 void 								Program::_redirectLogfile(std::string const &fileName, int start) {
 	int 							p[2];
 	int 							end;
 
-	if ((end = open(fileName.c_str(), O_WRONLY | O_CREAT)) < 0) {
-		std::cerr << this->_feature.getProgramName() << " => ERROR : '" << fileName << "' cant be open." << std::endl;
+	//std::cout << "redirect " << start << " >> " << fileName << std::endl;
+	if ((end = open(fileName.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) < 0) {
+		std::cerr << "ERROR [" << this->_feature.getProgramName() << "] : '" << fileName << "' cant be open." << std::endl;
 		return ;
 	}
 	if (pipe(p) < 0) {
@@ -147,33 +189,46 @@ void 								Program::_redirectLogfile(std::string const &fileName, int start) {
 
 void								Program::runProgram(void) {
 	pid_t							pid;
-	int 							ret;	
+	int 							ret;
+	
+	//printf("'%p', '%s'\n", command, command);
 
+	gg(this->_feature.getCommand().c_str());
+	std::cout << "run program" << std::endl;
 	if ((pid = fork()) < 0) {
 		//this->_logFile << this->_name << " : fork fail." << std::endl;
 		std::cerr << this->_feature.getProgramName() << " : fork fail." << std::endl;
 		throw std::exception();
 	}
 	if (pid == 0) {
-		this->_setUmask();
-		this->_setDirectory();
-		this->_redirectLogfile(this->_feature.getStdoutLogfile(), 1);
-		if (this->_feature.getRedirectStderr())
-			this->_redirectLogfile(this->_feature.getStderrLogfile(), 2);
+		printf("fils\n");
+		//this->_setUmask();
+		//this->_setDirectory();
+		//this->_redirectLogfile(this->_feature.getStdoutLogfile(), 1);
+		//if (this->_feature.getRedirectStderr())
+		//	this->_redirectLogfile(this->_feature.getStderrLogfile(), 2);
+		printf("before EXEC\n");
 		this->_executeProgram();
+		printf("END EXEC\n");
 	}
 	else {
+		//printf("father\n");
 		this->_mutex.lock();
 		this->_pidChild = pid;
 		this->_state = RUNNING;
-		//this->_logFile << this->_name << " RUNNING with pid " << pid << std::endl;
+		std::cout << " RUNNING with pid " << pid << std::endl;
+		//printf("two\n");
 		this->_mutex.unlock();
+		//printf("three\n");
 		wait(&ret);
+		//printf("foor\n");
 		this->_mutex.lock();
+		//printf("five\n");
 		this->_pidChild = 0;
 		this->_state = STOPPED;
 		//this->_logFile << this->_name << " STOPPED" << pid << std::endl;
 		this->_mutex.unlock();
+		//printf("size\n");
 	}
 	exit(0);
 }
@@ -190,18 +245,24 @@ void								Program::autostart(void) {
 
 void								Program::start(void) {
 
+	std::cout << "start" << std::endl;
 	this->_mutex.lock();
 	if (this->_state == STOPPED) {
 		//START PROCESS (thread + fork)
+		this->_mutex.unlock();
+
 		std::thread 				t(&Program::runProgram, this);
 
 		t.join();
 	} else if (this->_state == RUNNING) {
+		this->_mutex.unlock();
 		//this->_logFile << this->_name << " is already running." << std::endl;
 	} else if (this->_state == ERROR) {
+		this->_mutex.unlock();
 		//this->_logFile << this->_name << " dont be running." << std::endl;
+	} else {
+		this->_mutex.unlock();
 	}
-	this->_mutex.unlock();
 }
 
 void								Program::restart(void) {

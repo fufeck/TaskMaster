@@ -13,6 +13,8 @@
 #ifndef PROGRAM_HPP
 # define PROGRAM_HPP
 
+#include <string.h>
+#include <errno.h>
 #include <functional>
 #include <stdlib.h>
 #include <fcntl.h>

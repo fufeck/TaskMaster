@@ -32,6 +32,7 @@
 #define		EXIT_CODES 		"exitcodes"
 #define		STOPSIGNAL 		"stopsignal"
 #define		STOP_WAIT_SECS 	"stopwaitsecs"
+#define		START_RETRIES 	"startretries"
 #define		REDIRECT_SDTERR "redirect_stderr"
 #define		STDOUT_LOGFILE 	"stdout_logfile"
 #define		STDERR_LOGFILE 	"stderr_logfile"
@@ -60,6 +61,7 @@ public:
 	v_int								_exitcodes;
 	int									_stopsignal;
 	int									_stopwaitsecs;
+	int									_startRetries;
 	bool								_redirect_stderr;
 	std::string							_stdoutlogfile;
 	std::string							_stderrlogfile;
@@ -87,6 +89,7 @@ public:
 	void								setExitcodes(std::string const & exitCodes, int nbLine);
 	void								setStopSignal(std::string const & stopSignal, int nbLine);
 	void								setStopWaitSec(std::string const & wait, int nbLine);
+	void								setStartRetries(std::string const & wait, int nbLine);
 	void								setRedirectStderr(std::string const & redirect_stderr, int nbLine);
 	void								setStdoutLogfile(std::string const & stdoutlogfile, int nbLine);
 	void								setStderrLogfile(std::string const & stderrlogfile, int nbLine);
@@ -105,6 +108,7 @@ public:
 	v_int								getExitcodes(void) const;
 	int									getStopSignal(void) const;
 	int									getStopWaitSec(void) const;
+	int									getStartRetries(void) const;
 	bool								getRedirectStderr(void) const;
 	std::string							getStdoutLogfile(void) const;
 	std::string							getStderrLogfile(void) const;
