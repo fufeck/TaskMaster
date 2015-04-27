@@ -37,9 +37,13 @@ class Program
 {
 private:
 	eState								_state;
-	pid_t								_pidChild;
 	clock_t 							_lastTime;
+	std::vector<pid_t>					_process;
 	ProgramFeature						_feature;
+
+	std::ofstream						_stdoutLogfile;
+	std::ofstream						_stderrLogfile;
+
 	std::mutex							_mutex;
 
 	// map
@@ -60,11 +64,11 @@ public:
 	void								runProgram(void);
 
 	void								autostart(void);
-	void								start(void);
-	void								restart(void);
-	void								stop(void);
-	void								status(void);
-	void								reload(ProgramFeature const &);
+	bool								start(void);
+	bool								restart(void);
+	bool								stop(void);
+	std::string							status(void);
+	bool								reload(ProgramFeature const &);
 	
 	/***GETTEUR***/
 	eState								getState(void) const;
