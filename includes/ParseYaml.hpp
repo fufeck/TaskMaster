@@ -48,7 +48,7 @@ public:
 	m_feature				getAllProgramFeature(void) const;
 	ProgramFeature			getProgramFeature(std::string const &name) const;
 
-	bool					getStart(void) const;
+	bool					getStart(void);
 	void					reloadFile(void);
 };
 

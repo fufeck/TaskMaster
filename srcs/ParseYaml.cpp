@@ -12,7 +12,7 @@
 
 #include "ParseYaml.hpp"
 
-ParseYaml::ParseYaml(int ac, char **av) {
+ParseYaml::ParseYaml(int ac, char **av) : _start(true) {
 	if (ac != 2) {
 		std::cerr << "Usage : ./Taskmaster file.conf" << std::endl;
 		throw std::exception();
@@ -24,7 +24,6 @@ ParseYaml::ParseYaml(int ac, char **av) {
 		std::cerr << "ERROR : logfile is not define." << std::endl;
 		throw std::exception();
 	}
-	this->_start = true;
 }
 
 ParseYaml::~ParseYaml() {
@@ -68,8 +67,10 @@ void					ParseYaml::_empturStr(std::string & line) {
 
 }
 
-bool					ParseYaml::getStart(void) const {
-	return this->_start;
+bool					ParseYaml::getStart(void) {
+	bool	 			tmp = this->_start;
+	this->_start = false;
+	return tmp;
 }
 
 void					ParseYaml::dd(void) {
@@ -83,6 +84,7 @@ void					ParseYaml::reloadFile(void) {
 	int					nbLine = 1;
 	std::string			currentProgram = "";
 
+	this->_programFeature.clear();
 	file.open(this->_confFileName);
 	if (!file.is_open()) {
 		std::cerr << "ERROR file : " << this->_confFileName << " cant be opened." << std::endl;
@@ -128,11 +130,10 @@ void					ParseYaml::reloadFile(void) {
 	}
 	for (m_feature::iterator it = this->_programFeature.begin(); it != this->_programFeature.end(); it++) {
 		if (!it->second.isGood()) {
-			std::cerr << "ERROR : " << it->first << " too much error to create process." << std::endl;
+			std::cerr << "ERROR : [" << it->first << "] too much error to create process." << std::endl;
 			this->_programFeature.erase(it);
 		}
 	}
 	file.close();
-	this->_start = false;
-	this->dd();
+	//this->dd();
 }

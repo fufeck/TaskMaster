@@ -341,8 +341,6 @@ void								ProgramFeature::setFeature(std::string const & line, int nbLine) {
 	else {
 		std::string 				key = line.substr(0, line.find('='));
 		std::string 				value = line.substr(line.find('=') + 1, line.size());
-		//std::cout << "key = <" << key << ">" << std::endl;
-		//std::cout << "value = <" << value <<  ">" << std::endl;
 		if (this->_mapSet.find(key) != this->_mapSet.end()) {
 			setFunc 		func = this->_mapSet[key];
 			(this->*func)(value, nbLine);
@@ -350,7 +348,6 @@ void								ProgramFeature::setFeature(std::string const & line, int nbLine) {
 		else
 			std::cerr << "ERROR file : in line " << nbLine << " key is unknow" << std::endl;
 	}
-//	std::cout << std::endl;
 }
 
 std::string const				ProgramFeature::getProgramName(void) const {

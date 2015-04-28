@@ -13,12 +13,17 @@
 #ifndef TASKMASTER_HPP
 # define TASKMASTER_HPP
 
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <sstream>
 #include <fstream>
 #include <unistd.h>
 #include <map>
 #include <list>
 #include <string>
+#include <thread>
+#include <mutex>
 #include "ParseYaml.hpp"
 #include "Program.hpp"
 
@@ -37,8 +42,8 @@ public:
 	typedef							void (Taskmaster::*CmdFunc)(std::string const &programName);
 
 private:
+	bool 							_end;
 	ParseYaml						_parse;
-
 	std::map<std::string, CmdFunc>	_cmds;
 	PList							_programs;
 	std::ofstream					_logFile;
@@ -59,6 +64,9 @@ private:
 public:
 	Taskmaster(int ac, char **av);
 	~Taskmaster();
+
+	void						runCheck(void);
+	void						runCmd(void);
 
 	void						run(void);
 };

@@ -78,14 +78,16 @@ void 								Program::_setUmask(void) {
 
 void 								Program::_setDirectory(void) {
 	if (chdir(this->_feature.getDirectory().c_str()) < 0) {
-		this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : directory is incorrect." << std::endl;
-		throw std::exception();
+		//if (this->_feature.getRedirectStderr())
+		//	this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : directory is incorrect." << std::endl;
 	}
 }
 
 void 								Program::_executeProgram(void) {
 	char 							*command = strdup(this->_feature.getCommand().c_str());
 
+	//int ret = system(command) >> 8;
+	//std::cout << "ret = " << ret << std::endl;
 	if (this->_feature.getEnv().size() > 0) {
 		char 							env[this->_feature.getEnv().size()][100];
 		bzero(env, this->_feature.getEnv().size() * 100);
@@ -100,58 +102,42 @@ void 								Program::_executeProgram(void) {
 	} else {
 		execle("/bin/sh", "sh", "-c", command, (char*)0, NULL);
 	}
-	this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : execle fail." << std::endl;
+	//if (this->_feature.getRedirectStderr())
+	//	this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : execle fail." << std::endl;
 	exit(1);
 }
 
 void 								Program::_redirectLogfile(std::string const &fileName, int start) {
-	int 							p[2];
+	//int 							p[2];
 	int 							end;
 
 	if ((end = open(fileName.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) < 0) {
-		this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : '" << fileName << "' cant be open." << std::endl;
+		//if (this->_feature.getRedirectStderr())
+		//	this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : '" << fileName << "' cant be open." << std::endl;
 		return ;
 	}
-	if (pipe(p) < 0) {
-		this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : pipe fail." << std::endl;
-		return ;
-	}
-	dup2(start, p[1]);
-	dup2(p[0], end);
+	dup2(end, start);
 }
 
 void								Program::runProgram(void) {
 	pid_t							pid;
-	int 							ret;
+	//int 							ret;
 
 	if ((pid = fork()) < 0) {
-		this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : fork fail." << std::endl;
+		//if (this->_feature.getRedirectStderr())
+		//	this->_stderrLogfile << "ERROR [" << this->_feature.getProgramName() << "] : fork fail." << std::endl;
+		std::cout << "error fork " << std::endl;
 		return ;
 	}
 	if (pid == 0) {
 		this->_setUmask();
 		this->_setDirectory();
+		this->_redirectLogfile(this->_feature.getStdoutLogfile(), 1);
+		if (this->_feature.getRedirectStderr())
+			this->_redirectLogfile(this->_feature.getStderrLogfile(), 2);
 		this->_executeProgram();
 	}
-	else {
-		this->_mutex.lock();
-		this->_process.push_back(pid);
-		this->_state = RUNNING;
-		this->_stdoutLogfile << "[" << this->_feature.getProcessName() << "] : RUNNING with pid " << pid << std::endl;
-		this->_mutex.unlock();
-		wait(&ret);
-		this->_mutex.lock();
-		for (std::vector<pid_t>::iterator i =  this->_process.begin(); i < this->_process.end(); i++) {
-			if (*i == pid)
-				this->_process.erase(i);
-		}
-		this->_stdoutLogfile << "[" << this->_feature.getProcessName() << "] : STOPPED with pid " << pid << std::endl;
-		if (this->_process.size() == 0) {
-			this->_stdoutLogfile << "[" << this->_feature.getProgramName() << "] : STOPPED" << std::endl;
-			this->_state = STOPPED;
-		}
-		this->_mutex.unlock();
-	}
+	this->_process.push_back(Process(pid));
 }
 
 /***********************/
@@ -165,75 +151,104 @@ void								Program::autostart(void) {
 }
 
 bool								Program::start(void) {
-
-	this->_mutex.lock();
+	//this->_mutex.lock();
 	if (this->_state == STOPPED) {
-		this->_mutex.unlock();
-		std::thread 				t(&Program::runProgram, this);
-		t.join();
+		//this->_mutex.unlock();
+		this->runProgram();
+/*		std::vector<std::thread>	ths;
+
+		for (int i = 0; i < this->_feature.getNumProcs(); i++) {
+			std::cout << "th" << std::endl;
+			ths.push_back(std::thread(&Program::runProgram, this));
+		}
+
+		for (int i = 0; i < this->_feature.getNumProcs(); i++) {
+			std::cout << "join" << std::endl;
+			ths[i].join();
+		}*/
 	} else if (this->_state == RUNNING) {
-		this->_stderrLogfile << "[" << this->_feature.getProgramName() << "] : is already running." << std::endl;
-		this->_mutex.unlock();
+		//if (this->_feature.getRedirectStderr())
+			//this->_stderrLogfile << "[" << this->_feature.getProgramName() << "] : is already running." << std::endl;
+		//this->_mutex.unlock();
 		return false;
 	} else if (this->_state == ERROR) {
-		this->_stderrLogfile << "[" << this->_feature.getProgramName() << "] : dont be running." << std::endl;
-		this->_mutex.unlock();
+		//if (this->_feature.getRedirectStderr())
+		//	this->_stderrLogfile << "[" << this->_feature.getProgramName() << "] : dont be running." << std::endl;
+		//this->_mutex.unlock();
 		return false;
 	} else {
-		this->_mutex.unlock();
+		//this->_mutex.unlock();
 	}
 	return true;
 }
 
 bool								Program::restart(void) {
 
-	this->_mutex.lock();
+	//this->_mutex.lock();
 	if (this->_state == RUNNING) {
-		this->_mutex.unlock();
+		//this->_mutex.unlock();
 		this->stop();
 	}
 	if (this->_state == STOPPED) {
-		this->_mutex.unlock();
+		//this->_mutex.unlock();
 		return this->start();
 	} else {
-		this->_mutex.unlock();
+		//this->_mutex.unlock();
 	}
 	return false;
 }
 
 bool								Program::stop(void) {
-	this->_mutex.lock();
+	//this->_mutex.lock();
 	if (this->_state == RUNNING) {
 		//STOP PROCESS (kill fork + delete thread)
-		this->_mutex.unlock();
-		for (std::vector<pid_t>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
-			kill(*it, this->_feature.getStopSignal());
+		//this->_mutex.unlock();
+		for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
+			kill(it->pid, this->_feature.getStopSignal());
 		}
 		sleep(2);
-		this->_mutex.lock();
+		//this->_mutex.lock();
 		if (this->_state != STOPPED) {
-			this->_stderrLogfile << "[" << this->_feature.getProgramName() << "] : cant be stopped." << std::endl;
-			this->_mutex.unlock();
+			//if (this->_feature.getRedirectStderr())
+				//this->_stderrLogfile << "[" << this->_feature.getProgramName() << "] : cant be stopped." << std::endl;
+			//this->_mutex.unlock();
 			return false;
 		} else {
-			this->_stdoutLogfile << "[" << this->_feature.getProgramName() << "] : is stopped." << std::endl;
-			this->_mutex.unlock();
+			//this->_stdoutLogfile << "[" << this->_feature.getProgramName() << "] : is stopped." << std::endl;
+			//this->_mutex.unlock();
 			return true;
 		}
 	} else if (this->_state == STOPPED) {
-		this->_stdoutLogfile << "[" << this->_feature.getProgramName() << "] : is already stopped." << std::endl;
-		this->_mutex.unlock();
+		//this->_stdoutLogfile << "[" << this->_feature.getProgramName() << "] : is already stopped." << std::endl;
+		//this->_mutex.unlock();
 		return true;
 	}
-	this->_stderrLogfile << "[" << this->_feature.getProgramName() << "] : have an error." << std::endl;
-	this->_mutex.unlock();
+	//if (this->_feature.getRedirectStderr())
+		//this->_stderrLogfile << "[" << this->_feature.getProgramName() << "] : have an error." << std::endl;
+	//this->_mutex.unlock();
 	return false ;
+}
+
+void 									Program::checkProcess(void) {
+	//std::cout << "." << std::endl;
+	for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
+		int 			ret = 0;
+		if (it->isRunning) {
+			if (waitpid(it->pid, &ret, WNOHANG) != -1)
+				it->returnCode = ret >> 8;
+			if (waitpid(it->pid, &ret, WNOHANG) == -1) {
+				//std::cout << "prog stop" << std::endl;
+				it->isRunning = false;
+			}
+		}
+	}
 }
 
 std::string								Program::status(void) {
 	std::string 						status = "";
 
-	this->_mutex.lock();
+
+
 	status += this->_feature.getProgramName() + " : ";
 	if (this->_state == RUNNING) {
 		status += "RUNNING, ";
@@ -247,26 +262,28 @@ std::string								Program::status(void) {
 	} else if (this->_state == RUNNING && this->_feature.getNumProcs() > 0) {
 		status += "pid ";// + this->_process[0];
 	}
-
-	std::cout << "uptime " << static_cast<double>(clock() - this->_lastTime) / 1000000.0;
-	this->_mutex.unlock();
 	return status;
 }
 
 bool								Program::reload(ProgramFeature const & newFeature) {
-	this->_mutex.lock();
+	//this->_mutex.lock();
 	cmpFeature						lvlReload = (this->_feature == newFeature);
 
+	this->_feature = newFeature;
+	//this->_mutex.unlock();
 	if (lvlReload == MUST_RESTART) {
-		this->_mutex.unlock();
-		this->stop();
-		this->_feature = newFeature;
-		this->start();
-	} else if (lvlReload == NO_RESTART) {
-		this->_feature = newFeature;
-		this->_mutex.unlock();
-	} else {
-		this->_mutex.unlock();
+		this->restart();
 	}
 	return true;
+}
+
+void								Program::timerCheck(void) {
+	/*
+	this->_mutex.lock();
+	for (std::map<pid_t, int>::const_iterator it = this->_process.begin(); it != this->_process.end(); it++) {
+		std::cout << it->first << " : " << it->second << std::endl;
+	}
+	this->_mutex.unlock();
+	sleep(1);*/
+	return ;
 }

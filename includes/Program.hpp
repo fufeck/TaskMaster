@@ -33,18 +33,28 @@
 
 enum eState {STOPPED, RUNNING, ERROR};
 
+struct Process
+{
+	pid_t	pid;
+	bool	isRunning;
+	int	 	returnCode;
+
+	~Process() {}
+	Process(pid_t id) : pid(id), isRunning(true), returnCode(0) {}
+};
+
 class Program
 {
 private:
 	eState								_state;
 	clock_t 							_lastTime;
-	std::vector<pid_t>					_process;
+	std::vector<Process>				_process;
 	ProgramFeature						_feature;
 
 	std::ofstream						_stdoutLogfile;
 	std::ofstream						_stderrLogfile;
 
-	std::mutex							_mutex;
+	//std::mutex							_mutex;
 
 	// map
 	std::map<std::string, eState>		_mapState;
@@ -62,7 +72,9 @@ public:
 	Program(ProgramFeature);
 	~Program(void);
 	void								runProgram(void);
+	void								timerCheck(void);
 
+	void 								checkProcess(void);
 	void								autostart(void);
 	bool								start(void);
 	bool								restart(void);
