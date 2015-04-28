@@ -26,7 +26,8 @@ SRCS		=	srcs/main.cpp			\
 				srcs/ParseYaml.cpp 		\
 				srcs/Taskmaster.cpp		\
 				srcs/ProgramFeature.cpp	\
-				srcs/Program.cpp
+				srcs/Program.cpp		\
+				srcs/LogOutPut.cpp
 				
 				
 OBJS		=	$(SRCS:.cpp=.o)

@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "LogOutPut.hpp"
 #include "ProgramFeature.hpp"
 
 enum eState {STOPPED, RUNNING, ERROR};
@@ -51,40 +52,39 @@ private:
 	std::vector<Process>				_process;
 	ProgramFeature						_feature;
 
+	LogOutPut							*_logOutPut;
 	std::ofstream						_stdoutLogfile;
 	std::ofstream						_stderrLogfile;
 
-	//std::mutex							_mutex;
-
-	// map
 	std::map<std::string, eState>		_mapState;
 	std::vector< std::vector<int> >		_mapUmask;
 
 	void 								_setUmask(void);
 	void 								_setDirectory(void);
-	void 								_executeProgram(void);
 	void 								_redirectLogfile(std::string const &fileName, int start);
+	void 								_executeProgram(void);
+	void								_runProgram(void);
 
 	Program const &						operator=(Program const &);
 	Program(Program const &);
 	Program();
 public:
-	Program(ProgramFeature);
+	Program(ProgramFeature, LogOutPut *);
 	~Program(void);
-	void								runProgram(void);
+
+	eState								getState(void) const;
+	ProgramFeature						getFeature(void) const;
+
 	void								timerCheck(void);
 
 	void 								checkProcess(void);
 	void								autostart(void);
-	bool								start(void);
-	bool								restart(void);
-	bool								stop(void);
-	std::string							status(void);
-	bool								reload(ProgramFeature const &);
-	
-	/***GETTEUR***/
-	eState								getState(void) const;
-	ProgramFeature						getFeature(void) const;
+	void								start(void);
+	void								restart(void);
+	void								stop(void);
+	void								status(void);
+	void								reload(ProgramFeature const &);
+
 };
 
 #endif

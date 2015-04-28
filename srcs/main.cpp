@@ -15,30 +15,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-
 #include <iostream>
 #include "Taskmaster.hpp"
 
+void					myPuts(int fd, std::string str) {
+	write(fd, str.c_str(), str.size());
+}
+
 int 					main(int ac, char **av) {
-	/*pid_t							pid;
-	int ret;
-	char			*str = strdup("ls");
-	printf("'%p', '%s'\n", str, str);
-
-	if ((pid = fork()) < 0) {
-		return (1);
-	}
-	if (pid == 0) {
-		execle("/bin/sh", "sh", "-c", str, NULL);
-		printf("exec fail : %s\n", strerror(errno));
-	}
-	else {
-		wait(&ret);
-	}
-	printf("father stop %d\n", pid);
-
-	return (0);
-*/
 	try {
 		Taskmaster		taskmaster(ac, av);
 

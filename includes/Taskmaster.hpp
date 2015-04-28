@@ -24,8 +24,11 @@
 #include <string>
 #include <thread>
 #include <mutex>
+#include "LogOutPut.hpp"
 #include "ParseYaml.hpp"
 #include "Program.hpp"
+
+#define PRONPT		"$Taskmaster>"
 
 #define	START 		"start"
 #define	RESTART 	"restart"
@@ -42,12 +45,11 @@ public:
 	typedef							void (Taskmaster::*CmdFunc)(std::string const &programName);
 
 private:
-	bool 							_end;
 	ParseYaml						_parse;
-	std::map<std::string, CmdFunc>	_cmds;
 	PList							_programs;
-	std::ofstream					_logFile;
+	LogOutPut						*_logOutPut;
 
+	std::map<std::string, CmdFunc>	_cmds;
 	void							_start(std::string const &programName = "");
 	void							_restart(std::string const &programName = "");
 	void							_stop(std::string const &programName = "");
@@ -60,15 +62,17 @@ private:
 
 	Taskmaster();
 	Taskmaster(Taskmaster const &);
-	Taskmaster const &			operator=(Taskmaster const &);
+	Taskmaster const &				operator=(Taskmaster const &);
 public:
 	Taskmaster(int ac, char **av);
 	~Taskmaster();
 
-	void						runCheck(void);
-	void						runCmd(void);
+	void							runCheck(void);
+	void							runCmd(void);
 
-	void						run(void);
+	void							run(void);
 };
+
+void								myPuts(int fd, std::string str);
 
 #endif
