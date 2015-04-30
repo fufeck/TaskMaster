@@ -151,20 +151,23 @@ void				Taskmaster::_addProgram(std::string const &nameProgram, ProgramFeature c
 
 void						Taskmaster::run(void) {
 	std::string 			line = "";
+	int 					flags = fcntl(0, F_GETFL, 0);
+	char					buff[4096];
 
+	fcntl(0, F_SETFL, flags | O_NONBLOCK);
 	this->_logOutPut->putStdout(PRONPT);
 	this->_reload();
 	while (line != EXIT) {
-		fd_set					rd;	
-		FD_ZERO(&rd);
-		FD_SET(0, &rd);
-		select(1, &rd, NULL, NULL, NULL);
-		if (FD_ISSET(0, &rd)) {
+		line = "";
+
+		int len = 0;
+		if ((len = read(0, buff, 4095)) > 0) {
 			std::stringstream 	ss;
 			std::string 		cmd;
 			std::string 		params;
 
-			std::getline(std::cin, line);
+			(len > 0) ? (buff[len - 1] = '\0') : (buff[len] = '\0');
+			line = buff;
 			ss.str(line);
 			ss >> cmd;
 			ss >> params;
@@ -172,7 +175,7 @@ void						Taskmaster::run(void) {
 				CmdFunc 		func = this->_cmds[cmd];
 				(this->*func)(params);
 				this->_logOutPut->putStdout(PRONPT);
-			} else if (line != EXIT) {
+			} else if (line != EXIT && line != "") {
 				this->_logOutPut->putStderr("command '" + cmd + "' unknow.\n");
 				this->_logOutPut->putStdout(PRONPT);
 			}
@@ -180,6 +183,52 @@ void						Taskmaster::run(void) {
 		for (PList::iterator it = this->_programs.begin(); it != this->_programs.end(); ++it) {
 			it->second->checkProcess();
 		}
+		usleep(500000);
+	}
+}
+/*
+void						Taskmaster::run(void) {
+	std::string 			line = "";
+
+	this->_logOutPut->putStdout(PRONPT);
+	this->_reload();
+	while (line != EXIT) {
+		write(1, "1\n", 2);
+		fd_set					rd;	
+		FD_ZERO(&rd);
+		FD_SET(0, &rd);
+		write(1, "2\n", 2);
+		if (select(1, &rd, NULL, NULL, NULL) == 1) {
+
+			write(1, "3\n", 2);
+			if (FD_ISSET(0, &rd)) {
+				write(1, "4\n", 2);
+				std::stringstream 	ss;
+				std::string 		cmd;
+				std::string 		params;
+
+				std::getline(std::cin, line);
+				ss.str(line);
+				ss >> cmd;
+				ss >> params;
+				if (this->_cmds.find(cmd) != this->_cmds.end()) {
+					CmdFunc 		func = this->_cmds[cmd];
+					(this->*func)(params);
+					this->_logOutPut->putStdout(PRONPT);
+				} else if (line != EXIT) {
+					this->_logOutPut->putStderr("command '" + cmd + "' unknow.\n");
+					this->_logOutPut->putStdout(PRONPT);
+				}
+			}
+			write(1, "5\n", 2);
+		} else {
+			write(1, "6\n", 2);
+			for (PList::iterator it = this->_programs.begin(); it != this->_programs.end(); ++it) {
+				it->second->checkProcess();
+			}
+		}
+		write(1, "7\n", 2);
 		usleep(50000);
 	}
 }
+*/

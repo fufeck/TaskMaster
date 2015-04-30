@@ -16,6 +16,7 @@
 #include <string.h>
 #include <errno.h>
 #include <functional>
+#include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -39,8 +40,8 @@ struct Process
 	pid_t	pid;
 	bool	isRunning;
 	int	 	returnCode;
-	time_t beginTime;
-	time_t endTime;
+	time_t 	beginTime;
+	time_t 	endTime;
 
 	~Process() {}
 	Process(pid_t id) : pid(id), isRunning(true), returnCode(0) {
@@ -54,8 +55,8 @@ private:
 	eState								_state;
 	int 								_nbRestart;
 	time_t 								_lastTime;
-	std::vector<Process>				_process;
 	ProgramFeature						_feature;
+	std::vector<Process>				_process;
 
 	LogOutPut							*_logOutPut;
 	std::ofstream						_stdoutLogfile;

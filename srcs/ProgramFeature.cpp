@@ -260,6 +260,7 @@ void								ProgramFeature::setExitcodes(std::string const & exitCodes, int nbLi
 	if (res.empty()) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'exitcodes' is empty" << std::endl;
 	} else {
+		this->_exitcodes.clear();
 		this->_exitcodes = res;
 	}
 }
