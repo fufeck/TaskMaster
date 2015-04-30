@@ -128,6 +128,7 @@ void								Program::_runProgram(void) {
 			this->_redirectLogfile(this->_feature.getStderrLogfile(), 2);
 		this->_executeProgram();
 	}
+	std::cout << this->_feature.getProcessName() << " : START with pid " << pid << std::endl;
 	this->_process.push_back(Process(pid));
 }
 
@@ -173,8 +174,10 @@ void								Program::stop(void) {
 
 	if (this->_state == RUNNING) {
 		for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
-			if (it->isRunning == true)
+			if (it->isRunning == true) {	
 				kill(it->pid, this->_feature.getStopSignal());
+				std::cout << this->_feature.getProcessName() << " : with pid " << it->pid << " is STOPPING" << std::endl;
+			}
 		}
 		sleep(1);
 		this->_checkState();

@@ -155,8 +155,8 @@ void						Taskmaster::run(void) {
 	char					buff[4096];
 
 	fcntl(0, F_SETFL, flags | O_NONBLOCK);
-	this->_logOutPut->putStdout(PRONPT);
 	this->_reload();
+	this->_logOutPut->putStdout(PRONPT);
 	while (line != EXIT) {
 		line = "";
 
