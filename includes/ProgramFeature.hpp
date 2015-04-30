@@ -33,6 +33,7 @@
 #define		STOPSIGNAL 		"stopsignal"
 #define		STOP_WAIT_SECS 	"stopwaitsecs"
 #define		START_RETRIES 	"startretries"
+#define		START_SUCCESS 	"startsuccesstime"
 #define		REDIRECT_SDTERR "redirect_stderr"
 #define		STDOUT_LOGFILE 	"stdout_logfile"
 #define		STDERR_LOGFILE 	"stderr_logfile"
@@ -60,7 +61,8 @@ public:
 	eRestart							_autorestart;
 	v_int								_exitcodes;
 	int									_stopsignal;
-	int									_stopwaitsecs;
+	int									_stopwaitsecs; //??
+	int									_startsuccesstime;
 	int									_startRetries;
 	bool								_redirect_stderr;
 	std::string							_stdoutlogfile;
@@ -90,6 +92,7 @@ public:
 	void								setStopSignal(std::string const & stopSignal, int nbLine);
 	void								setStopWaitSec(std::string const & wait, int nbLine);
 	void								setStartRetries(std::string const & wait, int nbLine);
+	void								setStartSuccessTime(std::string const & wait, int nbLine);
 	void								setRedirectStderr(std::string const & redirect_stderr, int nbLine);
 	void								setStdoutLogfile(std::string const & stdoutlogfile, int nbLine);
 	void								setStderrLogfile(std::string const & stderrlogfile, int nbLine);
@@ -108,6 +111,7 @@ public:
 	v_int								getExitcodes(void) const;
 	int									getStopSignal(void) const;
 	int									getStopWaitSec(void) const;
+	int									getStartSuccessTime(void) const;
 	int									getStartRetries(void) const;
 	bool								getRedirectStderr(void) const;
 	std::string							getStdoutLogfile(void) const;

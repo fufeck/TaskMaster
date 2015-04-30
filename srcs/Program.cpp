@@ -16,6 +16,8 @@ Program::Program(ProgramFeature programFeature, LogOutPut *logOutPut) {
 
 	//init var
 	this->_state = STOPPED;
+	this->_nbRestart = 0;
+	time(&(this->_lastTime));
 	this->_feature = programFeature;
 	this->_logOutPut = logOutPut;
 
@@ -141,7 +143,11 @@ void								Program::autostart(void) {
 
 void								Program::start(void) {
 	if (this->_state == STOPPED) {
-		this->_runProgram();
+		this->_state = RUNNING;
+		time(&(this->_lastTime));
+		for (int i = 0; i < this->_feature.getNumProcs(); i++) {
+			this->_runProgram();
+		}
 	} else if (this->_state == RUNNING) {
 
 	} else {
@@ -162,13 +168,16 @@ void								Program::restart(void) {
 }
 
 void								Program::stop(void) {
+	this->_nbRestart = this->_feature.getStartRetries();
+
 	if (this->_state == RUNNING) {
 		for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
 			kill(it->pid, this->_feature.getStopSignal());
 		}
 		sleep(2);
+		this->_checkState();
 		if (this->_state == STOPPED) {
-		
+			this->_process.clear();
 		} else {
 
 		}
@@ -179,21 +188,25 @@ void								Program::stop(void) {
 
 void									Program::status(void) {
 	std::string 						status = "";
+	struct tm 							*timeInfo = localtime(&(this->_lastTime));
 
-
-	status += this->_feature.getProgramName() + " : ";
+	std::cout << this->_feature.getProgramName() << " : ";
 	if (this->_state == RUNNING) {
-		status += "RUNNING, ";
+		std::cout << "RUNNING, ";
 	} else if (this->_state == STOPPED) {
-		status += "STOPPED, ";
+		std::cout << "STOPPED, ";
 	} else {
-		status += "ERROR, ";
+		std::cout << "ERROR, ";
 	}
-	if (this->_state == RUNNING && this->_feature.getNumProcs() == 1) {
-		status += "pid ";// + this->_process[0];
-	} else if (this->_state == RUNNING && this->_feature.getNumProcs() > 0) {
-		status += "pid ";// + this->_process[0];
+	std::cout << timeInfo->tm_hour << ":" << timeInfo->tm_min << ":" << timeInfo->tm_sec;
+
+	if (this->_process.size() > 0) {
+		std::cout << ", with pid ";
+		for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
+			std::cout << it->pid << " ";
+		}
 	}
+	std::cout << std::endl;
 }
 
 void								Program::reload(ProgramFeature const & newFeature) {
@@ -201,18 +214,73 @@ void								Program::reload(ProgramFeature const & newFeature) {
 
 	this->_feature = newFeature;
 	if (lvlReload == MUST_RESTART) {
+		this->_nbRestart = 0;
 		this->restart();
 	}
 }
 
-void 									Program::checkProcess(void) {
+void									Program::_checkState(void) {
+	bool								programRunning = false;
 	for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
 		int 			ret = 0;
 		if (it->isRunning) {
 			if (waitpid(it->pid, &ret, WNOHANG) != -1)
 				it->returnCode = ret >> 8;
-			if (waitpid(it->pid, &ret, WNOHANG) == -1)
+			if (waitpid(it->pid, &ret, WNOHANG) == -1) {
 				it->isRunning = false;
+				time(&it->endTime);
+			}
+		}
+		if (it->isRunning == true)
+			programRunning = true;
+	}
+	if (this->_state == RUNNING && programRunning == false) {
+		this->_state = STOPPED;
+		time(&(this->_lastTime));
+	}
+}
+
+bool									Program::_checkExitCodes(void) {
+	bool								exitCodes = true;
+
+	for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
+		bool 							exitCode = false;
+		for (v_int::iterator ex = this->_feature.getExitcodes().begin(); ex != this->_feature.getExitcodes().end(); ex++) {
+			if (*ex == it->returnCode)
+				exitCode = true;
+		}
+		if (exitCode == false)
+			exitCodes = false;
+	}
+	return exitCodes;	
+}
+
+bool									Program::_checkStartSucsess(void) {
+	double								totalTime = 0;
+
+	for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
+		totalTime += difftime(it->beginTime, it->endTime);
+	}
+	return (totalTime / this->_process.size() >= this->_feature.getStartSuccessTime()) ? (true) : (false);	
+}
+
+void									Program::_checkAutoRestart(void) {
+	if (this->_feature.getAutoRestart() == ALL_THE_TIME) {
+		this->start();
+		this->_nbRestart++;
+	} else if (this->_feature.getAutoRestart() == UNEXPECTED) {
+		bool								exitCodes = this->_checkExitCodes();
+		bool								startsuccess = this->_checkStartSucsess();
+
+		if (exitCodes == false || startsuccess == false) {
+			this->start();
+			this->_nbRestart++;
 		}
 	}
+}
+
+void 									Program::checkProcess(void) {
+	this->_checkState();
+	if (this->_state == STOPPED && this->_nbRestart < this->_feature.getStartRetries())
+		this->_checkAutoRestart();
 }

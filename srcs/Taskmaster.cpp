@@ -180,6 +180,6 @@ void						Taskmaster::run(void) {
 		for (PList::iterator it = this->_programs.begin(); it != this->_programs.end(); ++it) {
 			it->second->checkProcess();
 		}
-		usleep(500000);
+		usleep(50000);
 	}
 }

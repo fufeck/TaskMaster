@@ -39,16 +39,21 @@ struct Process
 	pid_t	pid;
 	bool	isRunning;
 	int	 	returnCode;
+	time_t beginTime;
+	time_t endTime;
 
 	~Process() {}
-	Process(pid_t id) : pid(id), isRunning(true), returnCode(0) {}
+	Process(pid_t id) : pid(id), isRunning(true), returnCode(0) {
+		time(&(this->beginTime));
+	}
 };
 
 class Program
 {
 private:
 	eState								_state;
-	clock_t 							_lastTime;
+	int 								_nbRestart;
+	time_t 								_lastTime;
 	std::vector<Process>				_process;
 	ProgramFeature						_feature;
 
@@ -65,6 +70,13 @@ private:
 	void 								_executeProgram(void);
 	void								_runProgram(void);
 
+
+	void								_checkState(void);
+	bool								_checkExitCodes(void);
+	bool								_checkStartSucsess(void);
+	void								_checkAutoRestart(void);
+
+
 	Program const &						operator=(Program const &);
 	Program(Program const &);
 	Program();
@@ -74,8 +86,6 @@ public:
 
 	eState								getState(void) const;
 	ProgramFeature						getFeature(void) const;
-
-	void								timerCheck(void);
 
 	void 								checkProcess(void);
 	void								autostart(void);

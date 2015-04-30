@@ -18,10 +18,6 @@
 #include <iostream>
 #include "Taskmaster.hpp"
 
-void					myPuts(int fd, std::string str) {
-	write(fd, str.c_str(), str.size());
-}
-
 int 					main(int ac, char **av) {
 	try {
 		Taskmaster		taskmaster(ac, av);
