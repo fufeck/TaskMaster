@@ -88,8 +88,10 @@ void 								Program::_setDirectory(void) {
 void 								Program::_redirectLogfile(std::string const &fileName, int start) {
 	int 							end;
 
-	if ((end = open(fileName.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) > 0)
+	if ((end = open(fileName.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) > 0) {
 		dup2(end, start);
+	}
+
 }
 
 void 								Program::_executeProgram(void) {
@@ -249,34 +251,36 @@ void									Program::_checkState(void) {
 }
 
 bool									Program::_checkExitCodes(void) {
-	bool								exitCodes = true;
 	v_int 								exitCodesFeatures = this->_feature.getExitcodes();
 
 	for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
 		bool 							exitCode = false;
 		for (v_int::const_iterator ex = exitCodesFeatures.begin(); ex != exitCodesFeatures.end(); ex++) {
-			if (*ex == it->returnCode)
+			if (*ex == it->returnCode) {
 				exitCode = true;
+			}
 		}
 		if (exitCode == false)
-			exitCodes = false;
+			return false;
 	}
-	return exitCodes;	
+	return true;
 }
 
 bool									Program::_checkStartSucsess(void) {
-	double								totalTime = 0;
 
 	for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
 		double 		t = difftime(it->beginTime, it->endTime);
-		totalTime += (t >= 0) ? (t) : (-t);
+		t = (t >= 0) ? (t) : (-t);
+		if (t < this->_feature.getStartSuccessTime())
+			return false;
 	}
-	return (totalTime / this->_process.size() >= this->_feature.getStartSuccessTime()) ? (true) : (false);	
+	return true;
 }
 
 void									Program::_checkAutoRestart(void) {
 	if (this->_nbRestart < this->_feature.getStartRetries()) {
 		if (this->_feature.getAutoRestart() == ALL_THE_TIME) {
+			std::cout << std::endl;
 			this->start();
 			this->_nbRestart++;
 		} else if (this->_feature.getAutoRestart() == UNEXPECTED) {
@@ -284,6 +288,7 @@ void									Program::_checkAutoRestart(void) {
 			bool								startsuccess = this->_checkStartSucsess();
 
 			if (exitCodes == false || startsuccess == false) {
+				std::cout << std::endl;
 				this->start();
 				this->_nbRestart++;
 			}

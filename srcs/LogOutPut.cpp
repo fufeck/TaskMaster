@@ -13,7 +13,7 @@
 #include "LogOutPut.hpp"
 
 LogOutPut::LogOutPut(std::string fileLog) : _logFile(fileLog) {
-	if ((this->_fdLog = open(this->_logFile.c_str(), O_CREAT | O_WRONLY)) < 0) {
+	if ((this->_fdLog = open(this->_logFile.c_str(), O_CREAT | O_WRONLY, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0) {
 		write(2, "ERROR : log file cant be open.\n", 31);
 		throw std::exception();
 	}

@@ -156,7 +156,7 @@ void								ProgramFeature::display(void) const {
 	std::cout << "comand = " << this->_command << std::endl;
 	std::cout << "directory = " << this->_directory << std::endl;
 	std::cout << "umask = ";
-	for (unsigned int i = 0; i < this->_umask.size(); i++) {
+	for (unsigned int i = 0; i < 3; i++) {
 		std::cout << this->_umask[i] << " ";
 	}
 	std::cout << std::endl;
@@ -210,12 +210,9 @@ void								ProgramFeature::setUmask(std::string const & umask, int nbLine) {
 	} else if (umask[0] < '0' || umask[0] > '7' || umask[1] < '0' || umask[1] > '7' || umask[2] < '0' || umask[2] > '7') {
 		std::cerr << "ERROR : file in line " << nbLine << " 'umask' bad syntax" << std::endl;
 	} else {
-		v_int			tmp;
-
 		this->_umask.push_back(static_cast<int>(umask[0]));
 		this->_umask.push_back(static_cast<int>(umask[1]));
 		this->_umask.push_back(static_cast<int>(umask[2]));
-		this->_umask = tmp;
 	}
 }
 
