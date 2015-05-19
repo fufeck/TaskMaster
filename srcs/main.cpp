@@ -18,7 +18,8 @@
 #include <iostream>
 #include "Taskmaster.hpp"
 
-int 					main(int ac, char **av) {
+int 					main(int ac, char **av, char **env) {
+	static_cast<void>(env);
 	try {
 		Taskmaster		taskmaster(ac, av);
 
