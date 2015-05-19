@@ -71,7 +71,6 @@ public:
 
 
 	std::map<std::string, setFunc>		_mapSet;
-	
 	ProgramFeature();
 	ProgramFeature(std::string const &programName);
 	ProgramFeature(ProgramFeature const &);

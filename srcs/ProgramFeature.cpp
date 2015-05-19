@@ -125,6 +125,7 @@ ProgramFeature&						ProgramFeature::operator=(ProgramFeature const & other) {
 	this->_redirect_stderr = other.getRedirectStderr();
 	this->_stdoutlogfile = other.getStdoutLogfile();
 	this->_stderrlogfile = other.getStderrLogfile();
+	this->_env = other.getEnv();
 	return (*this);
 }
 
@@ -175,7 +176,9 @@ void								ProgramFeature::display(void) const {
 	std::cout << "redirect_stderr = " << this->_redirect_stderr << std::endl;
 	std::cout << "stdoutlogfile = " << this->_stdoutlogfile << std::endl;
 	std::cout << "stderrlogfile = " << this->_stderrlogfile << std::endl;
-	std::cout << std::endl;
+	for (m_str::const_iterator i = this->_env.begin(); i != this->_env.end(); i++) {
+		std::cout << "<" << i->first << "> = <" << i->second << ">" << std::endl;
+	}
 
 }
 
@@ -326,30 +329,43 @@ void								ProgramFeature::setStderrLogfile(std::string const & stderrlogfile, 
 }
 
 void								ProgramFeature::setEnv(std::string const & env, int nbLine) {
-	m_str							res;
 	std::string						tmp = env;
+	m_str 							result;
 
 	int 			a = tmp.find(",");
 	while (a > 0) {
-		std::string 				tt = tmp.substr(0, a);
-		if (tt.find("=") <= 0) {
+		std::string 				token = tmp.substr(0, a);
+		if (token.find("=") <= 0) {
 			std::cerr << "ERROR : file in line " << nbLine << " 'env' bad syntax" << std::endl;
 		} else {
-			res[tt.substr(0, tt.find("="))] = tt.substr(tt.find("="), tt.size());
+			std::string 			first = token.substr(0, token.find("="));
+			std::string 			second = token.substr(token.find("=") + 1, token.size());
+			if (second.rfind('"') - second.find('"') > 0) {
+				second = second.substr(second.find('"') + 1, second.rfind('"') - 1);
+				result[first] = second;
+			}
+			else {
+				std::cerr << "ERROR : file in line " << nbLine << " 'env' bad syntax" << std::endl;
+			}
 		}
-		tmp = tmp.substr(a, tmp.size());
+		tmp = tmp.substr(a + 1, tmp.size());
 		a = tmp.find(",");
 	}
-	if (tmp.find("=") <= 0) {
+	std::string 				token = tmp.substr(0, a);
+	if (token.find("=") <= 0) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'env' bad syntax" << std::endl;
 	} else {
-		res[tmp.substr(0, tmp.find("="))] = tmp.substr(tmp.find("="), tmp.size());
+		std::string 			first = token.substr(0, token.find("="));
+		std::string 			second = token.substr(token.find("=") + 1, token.size());
+		if (second.rfind('"') - second.find('"') > 0) {
+			second = second.substr(second.find('"') + 1, second.rfind('"') - 1);
+			result[first] = second;
+		}
+		else {
+			std::cerr << "ERROR : file in line " << nbLine << " 'env' bad syntax" << std::endl;
+		}
 	}
-	if (res.empty()) {
-		std::cerr << "ERROR : file in line " << nbLine << " 'env' is empty" << std::endl;
-	} else {
-		this->_env = res;
-	}
+	this->_env = result;
 }
 
 void								ProgramFeature::setFeature(std::string const & line, int nbLine) {

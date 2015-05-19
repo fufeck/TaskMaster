@@ -59,8 +59,6 @@ private:
 	std::vector<Process>				_process;
 
 	LogOutPut							*_logOutPut;
-	std::ofstream						_stdoutLogfile;
-	std::ofstream						_stderrLogfile;
 
 	std::map<std::string, eState>		_mapState;
 	std::vector< std::vector<int> >		_mapUmask;

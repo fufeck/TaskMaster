@@ -96,19 +96,23 @@ void 								Program::_redirectLogfile(std::string const &fileName, int start) {
 
 void 								Program::_executeProgram(void) {
 	char 							*command = strdup(this->_feature.getCommand().c_str());
+	m_str 							environ = this->_feature.getEnv();
 
-	if (this->_feature.getEnv().size() > 0) {
+	if (environ.size() > 0) {
 		char 							env[this->_feature.getEnv().size()][100];
 		bzero(env, this->_feature.getEnv().size() * 100);
 		int i = 0;
-		for (m_str::const_iterator it = this->_feature.getEnv().begin(); it != this->_feature.getEnv().end(); it++) {
+		for (m_str::const_iterator it = environ.begin(); it != environ.end(); it++) {
 			strcat(env[i], it->first.c_str());
 			strcat(env[i], "=");
 			strcat(env[i], it->second.c_str());
 			i++;
 		}
+		for (int i = 0; i < 4; i++)
+			std::cerr << env[i] << std::endl;
 		execle("/bin/sh", "sh", "-c", command, (char*)0, env);
 	} else {
+		std::cerr << "BB" << std::endl;
 		execle("/bin/sh", "sh", "-c", command, (char*)0, NULL);
 	}
 	exit(1);
