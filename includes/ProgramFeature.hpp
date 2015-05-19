@@ -61,7 +61,7 @@ public:
 	eRestart							_autorestart;
 	v_int								_exitcodes;
 	int									_stopsignal;
-	int									_stopwaitsecs; //??
+	int									_stopwaitsecs;
 	int									_startsuccesstime;
 	int									_startRetries;
 	bool								_redirect_stderr;

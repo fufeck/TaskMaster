@@ -110,10 +110,12 @@ void 								Program::_executeProgram(void) {
 		}
 		for (int i = 0; i < 4; i++)
 			std::cerr << env[i] << std::endl;
-		execle("/bin/sh", "sh", "-c", command, NULL, env, NULL);
+		execle("/bin/sh", "sh", "-c", command, NULL, env);
+		std::cerr << "ECHEC" << std::endl;
+		std::cerr << strerror(errno) << std::endl;
 	} else {
 		std::cerr << "BB" << std::endl;
-		execle("/bin/sh", "sh", "-c", command, (char*)0, NULL);
+		execle("/bin/sh", "sh", "-c", command, (char*)0);
 	}
 	exit(1);
 }
