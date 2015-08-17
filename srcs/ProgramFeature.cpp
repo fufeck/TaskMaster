@@ -30,6 +30,7 @@ ProgramFeature::ProgramFeature(void) : _programName("unknow") {
 	this->_redirect_stderr = false;
 	this->_stdoutlogfile = "/tmp/stdoutLog";
 	this->_stderrlogfile = "/tmp/stderrLog";
+	this->_env = NULL;
 
 	this->_mapSet[COMMAND] = &ProgramFeature::setCommand;
 	this->_mapSet[PROCESS_NAME] = &ProgramFeature::setProcessName;
@@ -67,6 +68,7 @@ ProgramFeature::ProgramFeature(std::string const &programName) : _programName(pr
 	this->_redirect_stderr = false;
 	this->_stdoutlogfile = "/tmp/stdoutLog";
 	this->_stderrlogfile = "/tmp/stderrLog";
+	this->_env = NULL;
 
 	this->_mapSet[COMMAND] = &ProgramFeature::setCommand;
 	this->_mapSet[PROCESS_NAME] = &ProgramFeature::setProcessName;
@@ -176,8 +178,13 @@ void								ProgramFeature::display(void) const {
 	std::cout << "redirect_stderr = " << this->_redirect_stderr << std::endl;
 	std::cout << "stdoutlogfile = " << this->_stdoutlogfile << std::endl;
 	std::cout << "stderrlogfile = " << this->_stderrlogfile << std::endl;
-	for (m_str::const_iterator i = this->_env.begin(); i != this->_env.end(); i++) {
-		std::cout << "<" << i->first << "> = <" << i->second << ">" << std::endl;
+
+	if (this->_env != NULL) {
+
+		std::cout << "env = " << std::endl;
+		for (int i = 0; this->_env[i] != NULL; i++) {
+			std::cout << this->_env[i] << std::endl;
+		}
 	}
 
 }
@@ -330,42 +337,34 @@ void								ProgramFeature::setStderrLogfile(std::string const & stderrlogfile, 
 
 void								ProgramFeature::setEnv(std::string const & env, int nbLine) {
 	std::string						tmp = env;
-	m_str 							result;
+	std::vector<std::string>		allVar;
 
 	int 			a = tmp.find(",");
 	while (a > 0) {
 		std::string 				token = tmp.substr(0, a);
-		if (token.find("=") <= 0) {
+		if (token.size() <= 0 || token.find("=") <= 0) {
 			std::cerr << "ERROR : file in line " << nbLine << " 'env' bad syntax" << std::endl;
 		} else {
-			std::string 			first = token.substr(0, token.find("="));
-			std::string 			second = token.substr(token.find("=") + 1, token.size());
-			if (second.rfind('"') - second.find('"') > 0) {
-				second = second.substr(second.find('"') + 1, second.rfind('"') - 1);
-				result[first] = second;
-			}
-			else {
-				std::cerr << "ERROR : file in line " << nbLine << " 'env' bad syntax" << std::endl;
-			}
+			allVar.push_back(token);
 		}
 		tmp = tmp.substr(a + 1, tmp.size());
 		a = tmp.find(",");
 	}
 	std::string 				token = tmp.substr(0, a);
-	if (token.find("=") <= 0) {
+	if (token.size() <= 0 || token.find("=") <= 0) {
 		std::cerr << "ERROR : file in line " << nbLine << " 'env' bad syntax" << std::endl;
 	} else {
-		std::string 			first = token.substr(0, token.find("="));
-		std::string 			second = token.substr(token.find("=") + 1, token.size());
-		if (second.rfind('"') - second.find('"') > 0) {
-			second = second.substr(second.find('"') + 1, second.rfind('"') - 1);
-			result[first] = second;
-		}
-		else {
-			std::cerr << "ERROR : file in line " << nbLine << " 'env' bad syntax" << std::endl;
-		}
+		allVar.push_back(token);
 	}
-	this->_env = result;
+	if (allVar.size() > 0) {
+
+		this->_env = (char **)malloc(sizeof(char *) * (allVar.size() + 1));
+		for (unsigned int i = 0; i < allVar.size(); i++) {
+			this->_env[i] = new char(allVar[i].size() + 1);
+			this->_env[i] = strcpy(this->_env[i],  allVar[i].c_str());
+		}
+		this->_env[allVar.size()] = NULL;
+	}
 }
 
 void								ProgramFeature::setFeature(std::string const & line, int nbLine) {
@@ -449,7 +448,7 @@ std::string							ProgramFeature::getStderrLogfile(void) const {
 	return this->_stderrlogfile;
 }
 
-m_str								ProgramFeature::getEnv(void) const {
+char 								**ProgramFeature::getEnv(void) const {
 	return this->_env;
 }
 

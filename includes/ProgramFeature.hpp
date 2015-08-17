@@ -67,7 +67,7 @@ public:
 	bool								_redirect_stderr;
 	std::string							_stdoutlogfile;
 	std::string							_stderrlogfile;
-	m_str								_env;
+	char								**_env;
 
 
 	std::map<std::string, setFunc>		_mapSet;
@@ -115,7 +115,7 @@ public:
 	bool								getRedirectStderr(void) const;
 	std::string							getStdoutLogfile(void) const;
 	std::string							getStderrLogfile(void) const;
-	m_str								getEnv(void) const;
+	char**								getEnv(void) const;
 
 };
 
