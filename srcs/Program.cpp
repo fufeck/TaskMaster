@@ -88,7 +88,7 @@ void 								Program::_setDirectory(void) {
 void 								Program::_redirectLogfile(std::string const &fileName, int start) {
 	int 							end;
 
-	if ((end = open(fileName.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) > 0) {
+	if ((end = open(fileName.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) > 0) {
 		dup2(end, start);
 	}
 
