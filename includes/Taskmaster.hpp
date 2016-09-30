@@ -29,7 +29,6 @@
 #include "Program.hpp"
 
 #define PRONPT		"$Taskmaster>"
-
 #define	START 		"start"
 #define	RESTART 	"restart"
 #define	STOP 		"stop"
@@ -50,6 +49,8 @@ private:
 	LogOutPut						*_logOutPut;
 
 	std::map<std::string, CmdFunc>	_cmds;
+
+
 	void							_start(std::string const &programName = "");
 	void							_restart(std::string const &programName = "");
 	void							_stop(std::string const &programName = "");
@@ -58,7 +59,6 @@ private:
 
 	void							_delProgram(std::string const &name = "");
 	void							_addProgram(std::string const &nameProgram, ProgramFeature const &newProgramFeature);
-	void							_exit(void);
 
 	Taskmaster();
 	Taskmaster(Taskmaster const &);
@@ -67,6 +67,7 @@ public:
 	Taskmaster(int ac, char **av);
 	~Taskmaster();
 
+	void							exit(void);
 	void							runCheck(void);
 	void							runCmd(void);
 

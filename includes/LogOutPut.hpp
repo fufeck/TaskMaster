@@ -16,6 +16,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string>
+#include <sstream>
+
+#define				DECAL_MONTH		1
+#define				DECAL_YEAR		1900
+
+#define	KEY		42
+#define	BUFF	4096
 
 class LogOutPut
 {
@@ -26,6 +33,8 @@ public:
 	LogOutPut(std::string fileLog);
 	~LogOutPut();
 
+	void 			exit(void);
+	std::string 	_getTime(std::string str);
 	void			putLogFile(std::string str);
 	void			putLogFileError(std::string str);
 	void			putStdout(std::string str);

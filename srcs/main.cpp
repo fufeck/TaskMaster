@@ -19,6 +19,7 @@
 #include "Taskmaster.hpp"
 
 int 					main(int ac, char **av) {
+
 	try {
 		Taskmaster		taskmaster(ac, av);
 

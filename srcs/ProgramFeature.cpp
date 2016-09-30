@@ -22,7 +22,8 @@ ProgramFeature::ProgramFeature(void) : _programName("unknow") {
 	this->_numprocs = 1;
 	this->_autostart = true;
 	this->_autorestart = NEVER;
-	this->_exitcodes.push_back(1);
+	this->_exitcodes.push_back(0);
+	this->_exitcodes.push_back(2);
 	this->_stopsignal = SIGKILL;
 	this->_stopwaitsecs = 10;
 	this->_startRetries = 3;
@@ -60,7 +61,8 @@ ProgramFeature::ProgramFeature(std::string const &programName) : _programName(pr
 	this->_numprocs = 1;
 	this->_autostart = true;
 	this->_autorestart = NEVER;
-	this->_exitcodes.push_back(1);
+	this->_exitcodes.push_back(0);
+	this->_exitcodes.push_back(2);
 	this->_stopsignal = SIGKILL;
 	this->_stopwaitsecs = 10;
 	this->_startRetries = 3;
@@ -133,10 +135,10 @@ ProgramFeature&						ProgramFeature::operator=(ProgramFeature const & other) {
 
 cmpFeature							ProgramFeature::operator==(ProgramFeature const & other) const {
 	if (this->_command != other.getCommand() ||
-		this->_env != other.getEnv() ||
+		!this->_cmpEnv(other.getEnv()) ||
 		this->_directory != other.getDirectory() ||
 		this->_numprocs != other.getNumProcs() ||
-		this->_umask != other.getUmask()) {
+		!this->_cmpUmask(other.getUmask())) {
 		return MUST_RESTART;
 	} else if (this->_autostart != other.getAutoStart() ||
 				this->_autorestart != other.getAutoRestart() ||
@@ -152,6 +154,26 @@ cmpFeature							ProgramFeature::operator==(ProgramFeature const & other) const 
 	}
 	return NOTHING;
 }
+
+bool								ProgramFeature::_cmpUmask(v_int other) const {
+	if (this->_umask[0] == other[0] && this->_umask[1] == other[1] && this->_umask[2] == other[2])
+		return true;
+	return false;
+}
+
+bool								ProgramFeature::_cmpEnv(char **env) const {
+	unsigned int 					i = 0;
+
+	for (; this->_env[i] != NULL && env[i] != NULL; i++) {
+		if (std::string(this->_env[i]) != std::string(env[i]))
+			return false;
+	}
+	if (this->_env[i] != NULL || env[i] != NULL)
+		return false;
+	return true;
+
+}
+
 
 void								ProgramFeature::display(void) const {
 	std::cout << " [" << this->_programName << "]" << std::endl;

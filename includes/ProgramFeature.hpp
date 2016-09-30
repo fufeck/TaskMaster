@@ -47,6 +47,10 @@ enum eRestart {ALL_THE_TIME, UNEXPECTED, NEVER};
 
 class ProgramFeature
 {
+private:
+	bool							_cmpUmask(v_int other) const;
+	bool							_cmpEnv(char **env) const;
+
 public:
 	typedef							void (ProgramFeature::*setFunc)(std::string const & command, int nbLine);
 

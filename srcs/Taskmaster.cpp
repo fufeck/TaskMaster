@@ -15,11 +15,6 @@
 Taskmaster::Taskmaster(int ac, char **av) : _parse(ac, av) {
 	this->_logOutPut = new LogOutPut(this->_parse.getLogFileName());
 
-	//this->_logFile.open(logFileName);
-	//if (!this->_logFile.is_open()) {
-		//std::cerr << "ERROR file : log file '" << logFileName << " cant be opened." << std::endl;
-		//throw std::exception();
-	//}
 	this->_cmds[START] = &Taskmaster::_start;
 	this->_cmds[RESTART] = &Taskmaster::_restart;
 	this->_cmds[STOP] = &Taskmaster::_stop;
@@ -28,15 +23,27 @@ Taskmaster::Taskmaster(int ac, char **av) : _parse(ac, av) {
 }
 
 Taskmaster::~Taskmaster() {
+	//	Lorsqu'une touche est frappée, je détruis le segment (le segment n'est pas détruit tant qu'au moins un processus est lié au segment)
 	this->_delProgram();
+	delete this->_logOutPut;
 }
+
+
 
 /**********************/
 /*******COMMANDS*******/
 /**********************/
 
+void				Taskmaster::exit(void) {
+	std::cout << "DEL PROG" << std::endl;
+	this->_delProgram();
+	std::cout << "DELETED PROG" << std::endl;
+	// delete this->_logOutPut;
+}
+
 void				Taskmaster::_start(std::string const &programName) {
 
+	this->_logOutPut->putLogFile("program's name '" + programName + "' unknow\n");
 	if (programName == "") {
 		for (PList::iterator it = this->_programs.begin(); it != this->_programs.end(); ++it)
 			it->second->start();
@@ -89,9 +96,9 @@ void				Taskmaster::_status(std::string const &programName) {
 }
 
 void				Taskmaster::_reload(std::string const &programName) {
-	if (!this->_parse.getStart())
+	if (!this->_parse.getStart()) {
 		this->_parse.reloadFile();
-
+	}
 	if (programName == "") {
 		m_feature			allFeature = this->_parse.getAllProgramFeature();
 
@@ -144,7 +151,7 @@ void				Taskmaster::_addProgram(std::string const &nameProgram, ProgramFeature c
 		Program 		*newProgram = new Program(newProgramFeature, this->_logOutPut);
 		this->_programs[nameProgram] = newProgram;		
 	} catch (std::exception & e) {
-		this->_logOutPut->putStderr("'" + nameProgram + "' cant be add\n");
+		this->_logOutPut->putAllError("'" + nameProgram + "' cant be add\n");
 	}
 	return ;
 }
@@ -176,7 +183,7 @@ void						Taskmaster::run(void) {
 				(this->*func)(params);
 				this->_logOutPut->putStdout(PRONPT);
 			} else if (line != EXIT && line != "") {
-				this->_logOutPut->putStderr("command '" + cmd + "' unknow.\n");
+				this->_logOutPut->putAllError("command '" + cmd + "' unknow.\n");
 				this->_logOutPut->putStdout(PRONPT);
 			}
 		}
@@ -185,4 +192,5 @@ void						Taskmaster::run(void) {
 		}
 		usleep(500000);
 	}
+
 }

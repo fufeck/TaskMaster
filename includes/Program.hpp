@@ -37,6 +37,7 @@ enum eState {STOPPED, RUNNING, ERROR};
 
 struct Process
 {
+
 	pid_t	pid;
 	bool	isRunning;
 	int	 	returnCode;
@@ -72,7 +73,7 @@ private:
 
 	void								_checkState(void);
 	bool								_checkExitCodes(void);
-	bool								_checkStartSucsess(void);
+	bool								_checkStartSuccess(void);
 	void								_checkAutoRestart(void);
 
 
