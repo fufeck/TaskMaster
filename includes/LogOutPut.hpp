@@ -18,6 +18,8 @@
 #include <string>
 #include <sstream>
 
+#define PRONPT		"$Taskmaster>"
+
 #define				DECAL_MONTH		1
 #define				DECAL_YEAR		1900
 

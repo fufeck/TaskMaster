@@ -33,7 +33,7 @@
 #include "LogOutPut.hpp"
 #include "ProgramFeature.hpp"
 
-enum eState {STOPPED, RUNNING, ERROR};
+enum eState {STOPPED, RUNNING, RESTART, ERROR};
 
 struct Process
 {

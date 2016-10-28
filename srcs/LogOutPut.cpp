@@ -21,7 +21,7 @@ LogOutPut::LogOutPut(std::string fileLog) : _logFile(fileLog) {
 	}
 	lseek(this->_fdLog, 0, SEEK_END);
 
-	std::string 	str(this->_getTime("[INFO] : Taskmaster start"));
+	std::string 	str(this->_getTime("[INFO] : Taskmaster start\n"));
 	write(this->_fdLog, str.c_str(), str.size());
 }
 
@@ -41,7 +41,7 @@ std::string 		LogOutPut::_getTime(std::string str) {
 
 	ss << "[" << std::setw(2) << std::setfill('0') << ti->tm_mday << "/" << std::setw(2) << std::setfill('0') << (ti->tm_mon + DECAL_MONTH) << "/" << (ti->tm_year + DECAL_YEAR);
 	ss << "-" << std::setw(2) << std::setfill('0') << ti->tm_hour << ":" << std::setw(2) << std::setfill('0') << ti->tm_min << ":" << std::setw(2) << std::setfill('0') << ti->tm_sec << "] ";
-	ss << str << std::endl;
+	ss << str;
 	return (ss.str());
 }
 

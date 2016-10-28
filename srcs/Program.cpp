@@ -148,29 +148,20 @@ void								Program::autostart(void) {
 }
 
 void								Program::start(void) {
-	if (this->_state == STOPPED) {
+	if (this->_state == STOPPED || this->_state == RESTART) {
 		this->_process.clear();
 		this->_state = RUNNING;
 		time(&(this->_lastTime));
 		for (int i = 0; i < this->_feature.getNumProcs(); i++) {
 			this->_runProgram();
 		}
-	} else if (this->_state == RUNNING) {
-
-	} else {
-
 	}
 }
 
 void								Program::restart(void) {
-
-	if (this->_state == RUNNING) {
+	if (this->_state != STOPPED) {
+		this->_state = RESTART;
 		this->stop();
-	}
-	if (this->_state == STOPPED) {
-		this->start();
-	} else {
-
 	}
 }
 
@@ -178,23 +169,18 @@ void								Program::stop(void) {
 	std::stringstream 				ss;
 	this->_nbRestart = this->_feature.getStartRetries();
 
-	if (this->_state == RUNNING) {
+	if (this->_state == RUNNING || this->_state == RESTART) {
 		for (std::vector<Process>::iterator it = this->_process.begin(); it != this->_process.end(); it++) {
-			if (it->isRunning == true) {	
+			if (it->isRunning == true) {
 				kill(it->pid, this->_feature.getStopSignal());
 				ss << this->_feature.getProcessName() << " : with pid " << it->pid << " is STOPPING" << std::endl;
 				this->_logOutPut->putAll(ss.str());
 			}
 		}
-		sleep(1);
 		this->_checkState();
 		if (this->_state == STOPPED) {
 			this->_process.clear();
-		} else {
-
 		}
-	} else if (this->_state == STOPPED) {
-	
 	}
 }
 
@@ -206,7 +192,7 @@ void									Program::status(void) {
 	ss << this->_feature.getProgramName() << " : ";
 	if (this->_state == RUNNING) {
 		ss << "RUNNING, ";
-	} else if (this->_state == STOPPED) {
+	} else if (this->_state == STOPPED || this->_state == RESTART) {
 		ss << "STOPPED, ";
 	} else {
 		ss << "ERROR, ";
@@ -220,7 +206,6 @@ void									Program::status(void) {
 		}
 	}
 	ss << std::endl;
-	// this->_writeFile(ss.str());
 	this->_logOutPut->putAll(ss.str());
 	return ;
 }
@@ -254,6 +239,14 @@ void									Program::_checkState(void) {
 	if (this->_state == RUNNING && programRunning == false) {
 		this->_state = STOPPED;
 		time(&(this->_lastTime));
+		this->_logOutPut->putStdout("\n");
+		this->status();
+		this->_logOutPut->putStdout(PRONPT);
+	} else if (this->_state == RESTART && programRunning == false) {
+		this->_logOutPut->putStdout("\n");
+		this->status();
+		this->start();
+		this->_logOutPut->putStdout(PRONPT);
 	}
 }
 
@@ -287,26 +280,27 @@ bool									Program::_checkStartSuccess(void) {
 void									Program::_checkAutoRestart(void) {
 	if (this->_nbRestart < this->_feature.getStartRetries()) {
 		if (this->_feature.getAutoRestart() == ALL_THE_TIME) {
-			this->_logOutPut->putStdout("");
+			this->_logOutPut->putStdout("\n");
 			this->start();
+			this->_logOutPut->putStdout(PRONPT);
 			this->_nbRestart++;
 		} else if (this->_feature.getAutoRestart() == UNEXPECTED) {
 			bool								exitCodes = this->_checkExitCodes();
 			bool								startsuccess = this->_checkStartSuccess();
 
 			if (exitCodes == false || startsuccess == false) {
-				this->_logOutPut->putStdout("");
+				this->_logOutPut->putStdout("\n");
 				this->start();
+				this->_logOutPut->putStdout(PRONPT);
 				this->_nbRestart++;
 			}
-		}
+		} 
 	} else {
 		this->_process.clear();
 	}
 }
 
 void 									Program::checkProcess(void) {
-
 	this->_checkState();
 	if (this->_state == STOPPED)
 		this->_checkAutoRestart();

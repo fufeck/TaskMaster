@@ -1,10 +1,9 @@
-Le reload redemarre les programme meme quand rien ne change ==> OK
 
-La sortie d'erreur de tail -f (quand le fichier n'existe pas) s'affiche apres le prompt ==> OK
 
-Les programme ne se redémarre pas lorsque l'on le kill ==> OK
+Pourquoi il n'y a rien dans /tmp/taskmaster.log // lorsqun procecuss fils essaye decrire dans le taskmaster celui ci n'est pas ouvert ==> OK
 
-Pourquoi il n'y a rien dans /tmp/taskmaster.log // lorsqun procecuss fils essaye decrire dans le taskmaster celui ci n'est pas ouvert
+
+
 
 Fair une map pour tous le signaux (feature)
 

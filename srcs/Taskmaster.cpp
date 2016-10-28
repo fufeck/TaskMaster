@@ -42,8 +42,6 @@ void				Taskmaster::exit(void) {
 }
 
 void				Taskmaster::_start(std::string const &programName) {
-
-	this->_logOutPut->putLogFile("program's name '" + programName + "' unknow\n");
 	if (programName == "") {
 		for (PList::iterator it = this->_programs.begin(); it != this->_programs.end(); ++it)
 			it->second->start();

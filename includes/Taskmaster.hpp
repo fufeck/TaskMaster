@@ -28,7 +28,6 @@
 #include "ParseYaml.hpp"
 #include "Program.hpp"
 
-#define PRONPT		"$Taskmaster>"
 #define	START 		"start"
 #define	RESTART 	"restart"
 #define	STOP 		"stop"

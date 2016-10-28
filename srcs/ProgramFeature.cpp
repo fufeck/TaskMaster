@@ -25,7 +25,7 @@ ProgramFeature::ProgramFeature(void) : _programName("unknow") {
 	this->_exitcodes.push_back(0);
 	this->_exitcodes.push_back(2);
 	this->_stopsignal = SIGKILL;
-	this->_stopwaitsecs = 10;
+	this->_stopwaitsecs = 1;
 	this->_startRetries = 3;
 	this->_startsuccesstime = 0;
 	this->_redirect_stderr = false;
@@ -64,7 +64,7 @@ ProgramFeature::ProgramFeature(std::string const &programName) : _programName(pr
 	this->_exitcodes.push_back(0);
 	this->_exitcodes.push_back(2);
 	this->_stopsignal = SIGKILL;
-	this->_stopwaitsecs = 10;
+	this->_stopwaitsecs = 1;
 	this->_startRetries = 3;
 	this->_startsuccesstime = 0;
 	this->_redirect_stderr = false;
