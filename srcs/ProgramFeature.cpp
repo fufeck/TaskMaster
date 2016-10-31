@@ -12,6 +12,40 @@
 
 #include "ProgramFeature.hpp"
 
+
+std::map<std::string, int>			mapSignal = {
+	{"SIGHUP", SIGHUP},
+	{"SIGQUIT", SIGQUIT},
+	{"SIGILL", SIGILL},
+	{"SIGTRAP", SIGTRAP},
+	{"SIGABRT", SIGABRT},
+	{"SIGEMT", SIGEMT},
+	{"SIGFPE", SIGFPE},
+	{"SIGKILL", SIGKILL},
+	{"SIGBUS", SIGBUS},
+	{"SIGSEGV", SIGSEGV},
+	{"SIGSYS", SIGSYS},
+	{"SIGPIPE", SIGPIPE},
+	{"SIGALRM", SIGALRM},
+	{"SIGTERM", SIGTERM},
+	{"SIGURG", SIGURG},
+	{"SIGSTOP", SIGSTOP},
+	{"SIGTSTP", SIGTSTP},
+	{"SIGCONT", SIGCONT},
+	{"SIGCHLD", SIGCHLD},
+	{"SIGTTIN", SIGTTIN},
+	{"SIGTTOU", SIGTTOU},
+	{"SIGIO", SIGIO},
+	{"SIGXCPU", SIGXCPU},
+	{"SIGXFSZ", SIGXFSZ},
+	{"SIGVTALRM", SIGVTALRM},
+	{"SIGPROF", SIGPROF},
+	{"SIGWINCH", SIGWINCH},
+	{"SIGINFO", SIGINFO},
+	{"SIGUSR1", SIGUSR1},
+	{"SIGUSR2", SIGUSR2}
+};
+
 ProgramFeature::ProgramFeature(void) : _programName("unknow") {
 	this->_processName = "";
 	this->_command = "";
@@ -294,9 +328,18 @@ void								ProgramFeature::setExitcodes(std::string const & exitCodes, int nbLi
 	}
 }
 void								ProgramFeature::setStopSignal(std::string const & stopSignal, int nbLine) {
-	static_cast<void>(stopSignal);
-	static_cast<void>(nbLine);
-	this->_stopsignal = SIGKILL;
+	std::map<std::string,int>::iterator it;
+
+	if (stopSignal.size() <= 0) {
+		std::cerr << "ERROR : file in line " << nbLine << " 'stopsignal' is empty" << std::endl;
+	}
+	it = mapSignal.find(stopSignal);
+	if (it != mapSignal.end()) {
+		this->_stopsignal = it->second;
+	} else {
+		this->_stopsignal = SIGKILL;
+		std::cerr << "ERROR : file in line " << nbLine << " 'stopsignal' dont exist" << std::endl;
+	}
 }
 
 void								ProgramFeature::setStopWaitSec(std::string const & stopwaitsecs, int nbLine) {
